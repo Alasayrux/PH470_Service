@@ -12,7 +12,7 @@ public interface ButtonProvider {
     Button getButton4();
     Button getButton5();
     Button getButton6();
-    TextView getTitulo();
+    TextView getTitle();
     LinearLayout getMenu();
 
    // Button getButton7();

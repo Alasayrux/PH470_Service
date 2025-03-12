@@ -1732,7 +1732,7 @@ public class ServiceFragment extends Fragment {
             bt_4 = buttonProvider.getButton4();
             bt_5 = buttonProvider.getButton5();
             bt_6 = buttonProvider.getButton6();
-            buttonProvider.getTitulo().setText("SERVICE");
+            buttonProvider.getTitle().setText("SERVICE");
             bt_1.setVisibility(VISIBLE);
 
             bt_2.setVisibility(View.INVISIBLE);
