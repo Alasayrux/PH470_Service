@@ -53,7 +53,7 @@ public  class BalanzaService implements Serializable {
     //leandrito
 
     private static boolean initializeDevicesbool=true,initializeescannerbool=true, initializexpansionesbool =true;
-
+    //holanda
 
     public static enum ModelosClasesExpansiones {
         Entradas(EntradasC.class), Salidas(SalidasC.class),Combinadas(MixtoC.class),Analogicos(AnalogicoC.class);
