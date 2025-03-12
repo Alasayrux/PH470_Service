@@ -420,6 +420,7 @@ public  class BalanzaService implements Serializable {
      //   System.out.println("INIT MODBUS "+ModbusA.get_Puerto());//+" "+ModbusB.get_Puerto()+" "+ModbusC.get_Puerto());
         return Modbus;
     }
+    //WOLOLO
     private class Balanzas implements Balanza{
         private Map<Integer, Balanza> balanzas = new HashMap<>();
         /**
