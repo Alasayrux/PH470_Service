@@ -9,7 +9,6 @@ import android.app.Dialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
-import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -45,13 +44,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.tabs.TabLayout;
-import com.service.Balanzas.Clases.ANDGF3000;
-import com.service.Balanzas.Clases.BalanzaBase;
-import com.service.Balanzas.Clases.ITW410.ITW410_FORM;
-import com.service.Balanzas.Clases.Minima.MINIMA_I;
 import com.service.Balanzas.Clases.Optima.OPTIMA_I;
-import com.service.Balanzas.Clases.R31P30_I;
-import com.service.Balanzas.Clases.SPIDER3;
 import com.service.Comunicacion.ButtonProvider;
 import com.service.Comunicacion.ButtonProviderSingleton;
 import com.service.Comunicacion.GenericDiscovery;

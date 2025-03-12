@@ -107,6 +107,7 @@ public  class BalanzaService implements Serializable {
                    return 1; // Devuelve una lista vacía en caso de error
                }
             }
+            //aaaaaaaaaaaaaaaaaaaaaa
         public boolean getTieneCal() {
             try {
                 return  getFieldValueBool("TieneCal");
