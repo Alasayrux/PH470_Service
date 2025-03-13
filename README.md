@@ -1,4 +1,4 @@
-***********************************************************Inicializacion BalanzaService**********************************************************
+**********************************************************Inicializacion BalanzaService**********************************************************
 
  BalanzaService.init(AppCompatActivity,OnFragmentChangeListener) ( Devuelve Service ) Llamar 1 Sola vez luego
  BalanzaService.getInstance() Devuelve Service
