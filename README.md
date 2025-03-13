@@ -5,18 +5,18 @@
 
 ************************************************Inicializacion Dispositivos,Expansiones,Escaneres************************************************
 
-  BalanzaService.getInstance().initDevices(DeviceManager.DeviceMessageListener);( Devuelve DeviceManager ) Llamar 1 Sola vez luego
-  BalanzaService.getInstance().getInstanceDevices() Devuelve DeviceManager
+        BalanzaService.getInstance().initDevices(DeviceManager.DeviceMessageListener);( Devuelve DeviceManager ) Llamar 1 Sola vez luego
+        BalanzaService.getInstance().getInstanceDevices() Devuelve DeviceManager
 
-  BalanzaService.getInstance().initEscanner(EscannerManager.ScannerMessageListener);( Devuelve EscaneresManager ) Llamar 1 Sola vez luego
-  BalanzaService.getInstance().getInstanceEscaneres()  Devuelve EscaneresManager
+        BalanzaService.getInstance().initEscanner(EscannerManager.ScannerMessageListener);( Devuelve EscaneresManager ) Llamar 1 Sola vez luego
+        BalanzaService.getInstance().getInstanceEscaneres()  Devuelve EscaneresManager
 
-  BalanzaService.getInstance().initDevices(ExpansionManager.ExpansionesMessageListener); ( Devuelve ExpansionesManager ) Llamar 1 Sola vez luego
-  BalanzaService.getInstance().getInstanceExpansiones()  Devuelve ExpansionesManager
+        BalanzaService.getInstance().initDevices(ExpansionManager.ExpansionesMessageListener); ( Devuelve ExpansionesManager ) Llamar 1 Sola vez luego
+        BalanzaService.getInstance().getInstanceExpansiones()  Devuelve ExpansionesManager
 
 ****************************************************************Poliformismo****************************************************************
 
- Balanza bzaEstandar = BalanzaService.getInstance().Balanzas;
+        Balanza bzaEstandar = BalanzaService.getInstance().Balanzas;
 
         Balanza bzaEspecifica = BalanzaService.getInstance().Balanzas.getbalanzas(1);
         if(bzaEspecifica instanceof Balanza.ITW410){
