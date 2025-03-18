@@ -50,7 +50,6 @@ public  class BalanzaService implements Serializable {
    // public  Balanza Services;
     ModbusReqRtuMaster ModbusA = null,ModbusB = null,ModbusC = null;
     public Printer Impresoras;
-    //leandrito
 
     private static boolean initializeDevicesbool=true,initializeescannerbool=true, initializexpansionesbool =true;
     //holanda
