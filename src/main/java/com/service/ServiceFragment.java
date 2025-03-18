@@ -88,7 +88,7 @@ public class ServiceFragment extends Fragment {
     public ArrayList<ZebraStruct> ListaScanner= new ArrayList<>();
     Boolean BoolChangeBalanza=false,stoped = false, programador = false;
     List<String> ListElementsArrayList = new ArrayList<>();
-
+ // jajajajaja
     public RecyclerSearcher adapterimpresora;
     RecyclerView recycler;
     MyRecyclerViewAdapter adapter;
