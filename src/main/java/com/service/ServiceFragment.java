@@ -89,6 +89,7 @@ public class ServiceFragment extends Fragment {
     Boolean BoolChangeBalanza=false,stoped = false, programador = false;
     List<String> ListElementsArrayList = new ArrayList<>();
  // jajajajaja
+    //jijijiji no lo soñe
     public RecyclerSearcher adapterimpresora;
     RecyclerView recycler;
     MyRecyclerViewAdapter adapter;
