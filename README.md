@@ -23,6 +23,10 @@
             Balanza.ITW410 bza410 = (Balanza.ITW410) bzaEspecifica;
            int a= bza410.Itw410FrmGetEstado(1);
         }
+        InstanceOf Con enum :
+        int N_BZA  = 1 //Numero Bza
+        BalanzaService.ModelosClasesBzas.values().get(n) //PARA FOR
+        BalanzaService.ModelosClasesBzas.Optima.getClase().isInstance(BalanzaService.getInstance().Balanzas.getBalanza(N_BZA))
         
 ****************************************************************otros****************************************************************
 
