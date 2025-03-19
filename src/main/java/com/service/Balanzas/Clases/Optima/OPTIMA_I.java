@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.service.BalanzaService;
 import com.service.Balanzas.Clases.BalanzaBase;
+import com.service.Balanzas.Clases.GestorPuertoSerie;
 import com.service.Comunicacion.OnFragmentChangeListener;
 import com.service.Comunicacion.PuertosSerie.PuertosSerie;
 import com.service.Interfaz.Balanza;
@@ -36,7 +37,8 @@ public class OPTIMA_I extends BalanzaBase implements Balanza.Optima_Image ,Seria
 
         super(puerto, numero, activity, fragmentChangeListener,idaux);
         try {
-            this.serialPort = BalanzaService.getInstance().initPuertoSerie(puerto, Integer.parseInt(Bauddef), Integer.parseInt(DataBdef), Integer.parseInt(StopBdef), Integer.parseInt(Paritydef), 0, 0);
+            System.out.print("INIT OPTIM");
+            this.serialPort = GestorPuertoSerie.getInstance().initPuertoSerie(puerto, Integer.parseInt(Bauddef), Integer.parseInt(DataBdef), Integer.parseInt(StopBdef), Integer.parseInt(Paritydef), 0, 0);
             Thread.sleep(300);
         } catch (InterruptedException e) {
 

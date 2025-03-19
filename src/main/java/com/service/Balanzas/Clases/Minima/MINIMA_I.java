@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.service.BalanzaService;
 import com.service.Balanzas.Clases.BalanzaBase;
+import com.service.Balanzas.Clases.GestorPuertoSerie;
 import com.service.Comunicacion.PuertosSerie.PuertosSerie;
 import com.service.PreferencesDevicesManager;
 import com.service.Utils;
@@ -34,8 +35,10 @@ public class MINIMA_I extends BalanzaBase implements  Serializable {
     public MINIMA_I(String puerto, int id, AppCompatActivity activity, OnFragmentChangeListener fragmentChangeListener,int idaux) {
         super(puerto, id,activity,fragmentChangeListener,idaux);
         try {
+
+            System.out.print("INIT MINIMx");
          //   System.out.println("Puerto"+ puerto+"Baud"+Bauddef+"Data"+DataBdef+"Stop"+StopBdef+"Parity"+Paritydef);
-            this.serialPort = BalanzaService.getInstance().initPuertoSerie(puerto,Integer.parseInt(Bauddef),Integer.parseInt(DataBdef),Integer.parseInt(StopBdef),Integer.parseInt(Paritydef),0,0);
+            this.serialPort = GestorPuertoSerie.getInstance().initPuertoSerie(puerto,Integer.parseInt(Bauddef),Integer.parseInt(DataBdef),Integer.parseInt(StopBdef),Integer.parseInt(Paritydef),0,0);
         } finally {
             this.numBza =(serialPort.get_Puerto()*10)+ id;
             BandaCero =true;

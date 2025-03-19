@@ -12,6 +12,10 @@ import com.service.PreferencesDevicesManager;
 import java.text.DecimalFormat;
 
 public class BalanzaBase  implements Balanza {
+    public static String M_MODO_CALIBRACION="MODO_CALIBRACION";
+    public static String M_MODO_BALANZA="MODO_BALANZA";
+    public static String M_VERIFICANDO_MODO="VERIFICANDO_MODO";
+
     public BalanzaBase(String puerto, int id, AppCompatActivity activity, OnFragmentChangeListener fragmentChangeListener,int numMultipleBza) {
             this.ID = id;
             this.activity = activity;
@@ -38,10 +42,10 @@ public class BalanzaBase  implements Balanza {
         return this;
     }
 
-    @Override public void setID(int numID, int numBza) {
+     public void setID(int numID, int numBza) {
         ID =numID;
     }
-    @Override public Integer getID( int numBza) {
+     public Integer getID( int numBza) {
         return ID;
     }
     @Override public Float getNeto(int numBza) {
@@ -78,17 +82,17 @@ public class BalanzaBase  implements Balanza {
     @Override public String getTaraDigital(int numBza) {
         return TaraDigitalStr;
     }
-    @Override public void setBandaCero(int numBza, Boolean bandaCeroi) {
+    public void setBandaCero(int numBza, Boolean bandaCeroi) {
         BandaCero =bandaCeroi;
 
     }
-    @Override public Boolean getBandaCero(int numBza) {
+     public Boolean getBandaCero(int numBza) {
         return BandaCero;
     }
-    @Override public Float getBandaCeroValue(int numBza) {
+     public Float getBandaCeroValue(int numBza) {
         return PreferencesDevicesManager.getBandaCeroValue(Nombre,numBza, activity);
     }
-    @Override public void setBandaCeroValue(int numBza, float bandaCeroValue) {
+     public void setBandaCeroValue(int numBza, float bandaCeroValue) {
         pesoBandaCero=bandaCeroValue;
         PreferencesDevicesManager.setBandaCeroValue(Nombre,this.numBza,bandaCeroValue, activity);
     }
@@ -125,28 +129,28 @@ public class BalanzaBase  implements Balanza {
 
 
 
-    @Override public void start(int numBza) {
+     public void start(int numBza) {
         Estado =M_MODO_BALANZA;
     }
-    @Override public Boolean calibracionHabilitada(int numBza) {
+     public Boolean calibracionHabilitada(int numBza) {
         return false;
     }
 
-    @Override public void openCalibracion(int numero) {
+     public void openCalibracion(int numero) {
 
     }
-    @Override public String getEstado(int numBza) {
+     public String getEstado(int numBza) {
         return Estado;
     }
-    @Override public void setEstado(int numBza, String estado) {
+    public void setEstado(int numBza, String estado) {
         this.Estado =estado;
     }
 
     //    ------------------------------------------------------------------------------------
-    @Override public void stop(int numBza) {}
-    @Override
+     public void stop(int numBza) {}
+
     public void escribir(String msj, int numBza) {}
-    @Override
+
     public void init(int numBza){
     }
     @Override public Boolean getSobrecarga(int numBza) {

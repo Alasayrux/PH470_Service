@@ -2,30 +2,15 @@ package com.service.Interfaz;
 
 import com.service.Balanzas.Clases.BalanzaBase;
 
+
 public interface Balanza {
-    String M_MODO_CALIBRACION="MODO_CALIBRACION";
-    String M_MODO_BALANZA="MODO_BALANZA";
-    String M_VERIFICANDO_MODO="VERIFICANDO_MODO";
 
 
     /** Devuelve la balanza especificada
      * @param numID El ID a devolver.
      */
     BalanzaBase getBalanza(int numID);
-    /**
-     * Establece el ID para la balanza especificada.
-     *
-     * @param numID El ID a asignar.
-     * @param numBza El número de la balanza.
-     */
-    void setID(int numID,int numBza);
-    /**
-     * Obtiene el ID de la balanza especificada.
-     *
-     * @param numBza El número de la balanza.
-     * @return El ID de la balanza.
-     */
-    Integer getID(int numBza);
+
     /**
      * Obtiene el valor neto de la balanza especificada.
      *
@@ -95,35 +80,6 @@ public interface Balanza {
      */
     String getTaraDigital(int numBza);
     /**
-     * Obtiene el estado de la banda cero de la balanza especificada.
-     *
-     * @param numBza El número de la balanza.
-     * @return true si la banda cero pudo setearse, false de lo contrario.
-     */
-    Boolean getBandaCero(int numBza);
-    /**
-     * Establece el estado de la banda cero de la balanza especificada.
-     *
-     * @param numBza El número de la balanza.
-     * @param bandaCeroi El estado de la banda cero.
-     */
-    void setBandaCero(int numBza, Boolean bandaCeroi);
-    /**
-     * Obtiene el valor de la banda cero de la balanza especificada.
-     *
-     * @param numBza El número de la balanza.
-     * @return El valor de la banda cero.
-     */
-    Float getBandaCeroValue(int numBza);
-
-    /**
-     * Establece el valor de la banda cero de la balanza especificada.
-     *
-     * @param numBza El número de la balanza.
-     * @param bandaCeroValue El valor de la banda cero.
-     */
-    void setBandaCeroValue(int numBza, float bandaCeroValue);
-    /**
      * Verifica si la balanza especificada está estable.
      *
      * @param numBza El número de la balanza.
@@ -160,65 +116,14 @@ public interface Balanza {
      * @return El valor del pico.
      */
     Float getPico(int numBza);
-    /**
-     * Inicializa la balanza especificada.
-     *
-     * @param numBza El número de la balanza.
-     */
-    void init(int numBza);
-    /**
-     * Escribe un comando manual en la balanza especificada.
-     *
-     * @param msj El mensaje a escribir.
-     * @param numBza El número de la balanza.
-     */
-    void escribir(String msj,int numBza);
-    /**
-     * Detiene la balanza especificada.
-     * O todo service en caso de llamarlo en Service
-     * @param numBza El número de la balanza, en service es indiferente.
-     */
-    void stop(int numBza);
-    /**
-     * Inicia la balanza especificada.
-     *
-     * @param numBza El número de la balanza.
-     */
-    void start(int numBza);
-    /**
-     * Verifica si la calibración está habilitada en la balanza especificada.
-     *
-     * @param numBza El número de la balanza.
-     * @return true si la calibración está habilitada, false de lo contrario.
-     */
-    Boolean calibracionHabilitada(int numBza);
-    /**
-     * Abre el modo de calibración de la balanza especificada.
-     *
-     * @param numBza El número de la balanza.
-     */
-    void openCalibracion(int numBza);
-    /**
+  /**
      * Verifica si hay sobrecarga en la balanza especificada.
      *
      * @param numBza El número de la balanza.
      * @return true si hay sobrecarga, false de lo contrario.
      */
     Boolean getSobrecarga(int numBza);
-    /**
-     * Obtiene el estado de la balanza especificada.
-     *
-     * @param numBza El número de la balanza.
-     * @return El estado de la balanza.
-     */
-    String getEstado(int numBza);
-    /**
-     * Establece el estado de la balanza especificada.
-     *
-     * @param numBza El número de la balanza.
-     * @param estado El nuevo estado de la balanza.
-     */
-    void setEstado(int numBza, String estado);
+
         interface ITW410 extends Balanza{
             /**
              * Configura el set point de la balanza ITW410.

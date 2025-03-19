@@ -29,6 +29,8 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
 import com.service.BalanzaService;
+import com.service.Balanzas.Clases.BalanzaBase;
+import com.service.ComService;
 import com.service.Comunicacion.ButtonProvider;
 import com.service.Comunicacion.ButtonProviderSingleton;
 import com.service.Interfaz.Balanza;
@@ -51,7 +53,7 @@ public class CalibracionItw410Fragment extends Fragment {
     Button Guardar;
     BalanzaService Service;
     //    public float pesoUnitario=0.5F,pesoBandaCero=0F,taraDigital=0,Bruto=0,Tara=0,Neto=0,pico=0;
-    public String read,estado= Balanza.M_MODO_CALIBRACION,estable=""/*,ultimaCalibracion="",brutoStr="0",netoStr="0",taraStr="0",taraDigitalStr="0",picoStr="0"*/;
+    public String read,estado= BalanzaBase.M_MODO_CALIBRACION,estable=""/*,ultimaCalibracion="",brutoStr="0",netoStr="0",taraStr="0",taraDigitalStr="0",picoStr="0"*/;
     public Boolean isCollapsed = false,stoped=false,inicioBandaPeso=false,lasttanque = true,bandaCero =true,btSeteobool=true,bt_homebool=true,bt_resetbool=true,btCalibracionbool=true,enviarparambool=true,bt_iniciarCalibracionbool=true,btReajusteCerobool=true;
     public int initialWidth = 258,puntoDecimal=1,/*acumulador=0,*/ numero=1,indiceCalibracion=1;
     ImageView animbutton,imgCal;
@@ -81,12 +83,12 @@ public class CalibracionItw410Fragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
          viewMang = inflater.inflate(R.layout.standar_calibracion_v2_410,container,false);
         buttonProvider = ButtonProviderSingleton.getInstance().getButtonProvider();
-        estado=Balanza.M_MODO_CALIBRACION;
+        estado=BalanzaBase.M_MODO_CALIBRACION;
         if (getArguments() != null) {
             BZA = (ITW410_FORM) getArguments().getSerializable("instance");
-            BZA.Estado =Balanza.M_MODO_CALIBRACION;
+            BZA.Estado =BalanzaBase.M_MODO_CALIBRACION;
             Service = BalanzaService.getInstance();// (BalanzaService) getArguments().getSerializable("instanceService");
-                activity = Service.activity;
+                activity = ComService.getInstance().activity;
         }
         return viewMang;
     }
@@ -159,7 +161,7 @@ public class CalibracionItw410Fragment extends Fragment {
                         @Override
                         public void run() {
                             try {
-                                estado= Balanza.M_MODO_BALANZA;
+                                estado= BalanzaBase.M_MODO_BALANZA;
                                  BZA.Guardar_cal();
                                 getActivity().runOnUiThread(new Runnable() {
                                     @Override
@@ -185,13 +187,13 @@ public class CalibracionItw410Fragment extends Fragment {
                                     getActivity().runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            estado= Balanza.M_MODO_BALANZA;
+                                            estado= BalanzaBase.M_MODO_BALANZA;
                                            // BZA.setPesoUnitario( BZA.getPesoUnitario());
-                                            BZA.Estado =  Balanza.M_MODO_BALANZA;
+                                            BZA.Estado =  BalanzaBase.M_MODO_BALANZA;
                                             BZA.salir_cal();
                                             bt_homebool=true;
                                             dialog.cancel();
-                                            Service.openServiceFragment();
+                                            ComService.getInstance().openServiceFragment();
 
                                         }
                                     });

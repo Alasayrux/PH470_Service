@@ -44,6 +44,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.tabs.TabLayout;
+import com.service.Balanzas.Clases.BalanzaBase;
 import com.service.Balanzas.Clases.Optima.OPTIMA_I;
 import com.service.Comunicacion.ButtonProvider;
 import com.service.Comunicacion.ButtonProviderSingleton;
@@ -82,6 +83,7 @@ public class ServiceFragment extends Fragment {
     FragmentActivity actividad;
     TabLayout tablayout;
     AlertDialog dialog;
+    BalanzaService.Balanzas Balanzas;
     RecyclerView recyclerView;
     static Fragment serviceFrgmnt;
     Boolean isReceiverRegistered = false;
@@ -115,10 +117,10 @@ public class ServiceFragment extends Fragment {
         View view = inflater.inflate(R.layout.standar_service, container, false);
         buttonProvider = ButtonProviderSingleton.getInstance().getButtonProvider();
         service = BalanzaService.getInstance();
-        Permisos=service.fragmentChangeListener.getUsuarioLvl(); //0 = sin loguear /1 = operador / 2=supervisor / 3=administrador // 4 = programador
+        Permisos=ComService.getInstance().fragmentChangeListener.getUsuarioLvl(); //0 = sin loguear /1 = operador / 2=supervisor / 3=administrador // 4 = programador
        // System.out.println(Permisos);
         this.actividad=getActivity();
-        activity=(AppCompatActivity)service.activity;
+        activity=(AppCompatActivity)ComService.getInstance().activity;
         return view;
     }
 
@@ -292,8 +294,9 @@ public class ServiceFragment extends Fragment {
             adapter.setClickListener((view1, position) -> {
 
                 if(BalanzaService.ModelosClasesBzas.values()[list.get(position)].getTieneCal()) {
-                service.Balanzas.setEstado(position+1,OPTIMA_I.M_MODO_CALIBRACION);
-                    service.Balanzas.openCalibracion(position + 1);
+
+                Balanzas.setEstado(position+1, BalanzaBase.M_MODO_CALIBRACION);
+                    Balanzas.openCalibracion(position + 1);
                 };
             });
             recycler.setAdapter(adapter);
@@ -440,8 +443,9 @@ public class ServiceFragment extends Fragment {
                 Utils.dialogoDosOpciones(actividad,"¿esta seguro que quiere resetear Dispositivos de Service?","Si",() ->{
                     Utils.clearCache(activity.getApplicationContext());
                     BoolChangeBalanza=true;
+                    System.out.print("ENTRO?");
                     service.init(true);
-                    service.fragmentChangeListener.openFragmentPrincipal();
+                    ComService.getInstance().fragmentChangeListener.openFragmentPrincipal();
                     },"No",() ->{});
 
             });
@@ -467,8 +471,8 @@ public class ServiceFragment extends Fragment {
                     adapter.setClickListener((view1, position) -> {
 
                         if(BalanzaService.ModelosClasesBzas.values()[list.get(position)].getTieneCal()) {
-                            service.Balanzas.setEstado(position + 1, OPTIMA_I.M_MODO_CALIBRACION);
-                            service.Balanzas.openCalibracion(position + 1);
+                            Balanzas.setEstado(position + 1, BalanzaBase.M_MODO_CALIBRACION);
+                            Balanzas.openCalibracion(position + 1);
                         }
                     });
                     recycler.setAdapter(adapter);
@@ -488,8 +492,8 @@ public class ServiceFragment extends Fragment {
             adapter = new MyRecyclerViewAdapter(getContext(), ListElementsArrayList, activity);
             adapter.setClickListener((view1, position) -> {
                 if(BalanzaService.ModelosClasesBzas.values()[list.get(position)].getTieneCal()) {
-                    service.Balanzas.setEstado(position + 1, OPTIMA_I.M_MODO_CALIBRACION);
-                    service.Balanzas.openCalibracion(position + 1);
+                    Balanzas.setEstado(position + 1, BalanzaBase.M_MODO_CALIBRACION);
+                    Balanzas.openCalibracion(position + 1);
                 }
             });
             recycler.setAdapter(adapter);
@@ -1735,12 +1739,14 @@ public class ServiceFragment extends Fragment {
             bt_5.setVisibility(View.INVISIBLE);
             bt_6.setVisibility(View.INVISIBLE);
             bt_home.setOnClickListener(view -> {
+
                 if(BoolChangeBalanza){
+                    System.out.print("ENTRO?");
                     BoolChangeBalanza=false;
                     service.init(true);
 
                 }
-                service.fragmentChangeListener.openFragmentPrincipal();
+                ComService.getInstance().fragmentChangeListener.openFragmentPrincipal();
             });
 
         }

@@ -10,16 +10,17 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.service.Balanzas.Clases.ANDGF3000;
 import com.service.Balanzas.Clases.BalanzaBase;
+import com.service.Balanzas.Clases.GestorPuertoSerie;
 import com.service.Balanzas.Clases.ITW410.ITW410_FORM;
 import com.service.Balanzas.Clases.Minima.MINIMA_I;
 import com.service.Balanzas.Clases.Optima.OPTIMA_I;
+import com.service.Balanzas.Clases.R31P30_I;
 import com.service.Balanzas.Clases.SPIDER3;
 import com.service.Balanzas.Clases.zorra232;
 import com.service.Comunicacion.Modbus.ModbusMasterRtu;
 import com.service.Comunicacion.Modbus.Req.ModbusReqRtuMaster;
-import com.service.Comunicacion.OnFragmentChangeListener;
-import com.service.Balanzas.Clases.R31P30_I;
 import com.service.Comunicacion.Impresora.ImprimirEstandar;
+import com.service.Comunicacion.OnFragmentChangeListener;
 import com.service.Comunicacion.PuertosSerie.DeviceManager;
 import com.service.Comunicacion.PuertosSerie.EscannerManager;
 import com.service.Expansiones.Clases.ExpansionManager;
@@ -44,13 +45,15 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public  class BalanzaService implements Serializable {
-    private PuertosSerie serialPortA=null,serialPortC=null,serialPortB=null;
-    private ServiceFragment Servicefragment= new ServiceFragment();
-    public Balanza Balanzas;
+
    // public  Balanza Services;
-    ModbusReqRtuMaster ModbusA = null,ModbusB = null,ModbusC = null;
+    public com.service.Interfaz.Expansiones Expansiones = new Expansiones();
+    public com.service.Interfaz.Devices Devices = new Devices();
+    public com.service.Interfaz.Escaneres Escaneres = new Escaneres();
+
     public Printer Impresoras;
     //leandrito
+    protected GestorPuertoSerie Puertos = new GestorPuertoSerie();
 
     private static boolean initializeDevicesbool=true,initializeescannerbool=true, initializexpansionesbool =true;
     //holanda
@@ -140,15 +143,8 @@ public  class BalanzaService implements Serializable {
         }
     }
 
-
+    private static ComService ComService;
     private static BalanzaService Service=null;
-    public  AppCompatActivity activity;
-    public OnFragmentChangeListener fragmentChangeListener;
-    private BalanzaService( AppCompatActivity activity, OnFragmentChangeListener fragmentChangeListener) {
-        Service = this;
-        this.activity =  activity;
-        this.fragmentChangeListener = fragmentChangeListener;
-    }
     /**
      * Inicializa el servicio `BalanzaService` si aún no está inicializado.
      * Si el servicio ya está inicializado, retorna la instancia existente.
@@ -159,7 +155,8 @@ public  class BalanzaService implements Serializable {
      */
     public static BalanzaService init(AppCompatActivity activity, OnFragmentChangeListener fragmentChangeListener){
         if(Service==null){
-            Service= new BalanzaService(activity,fragmentChangeListener);
+            Service= new BalanzaService();
+            ComService = com.service.ComService.init(activity,fragmentChangeListener);
             Service.init(false);
         }
         return Service;
@@ -174,78 +171,10 @@ public  class BalanzaService implements Serializable {
     }
 
     // inicio init funciones ---
-
-    /**
-     * Inicializa un puerto serie con los parámetros proporcionados.
-     * Si el puerto ya ha sido inicializado, reutiliza la instancia existente.
-     *
-     * @param Puerto El nombre del puerto serie a inicializar (por ejemplo, "PuertoSerie 1", "PuertoSerie 2", "PuertoSerie 3").
-     * @param baudrate La velocidad de transmisión en baudios.
-     * @param databits El número de bits de datos.
-     * @param stopbit El número de bits de parada (generalmente 1 o 2).
-     * @param parity El tipo de paridad (Ninguna, Paridad Par, Paridad Impar).
-     * @param flowcon El control de flujo (generalmente 0 para desactivado).
-     * @param flags Otros flags relacionados con la configuración del puerto.
-     * @return La instancia del objeto `PuertosSerie` inicializado.
-     */
-    public PuertosSerie initPuertoSerie(String Puerto, int baudrate, int databits, int stopbit, int parity, int flowcon, int flags){
-        PuertosSerie puertoserie = new PuertosSerie();
-        CountDownLatch latch = new CountDownLatch(1);
-        switch (Puerto){
-            case PuertosSerie.StrPortA:{
-                if(serialPortA==null) {
-                    puertoserie.open(Puerto,baudrate,stopbit,databits,parity,flowcon,flags);
-                    if(puertoserie!=null) {
-                        serialPortA=puertoserie;
-                    }
-                }else{
-                    puertoserie=serialPortA;
-                }
-                latch.countDown();
-                break;
-            }
-            case PuertosSerie.StrPortB:{
-                if(serialPortB==null) {
-                    puertoserie.open(Puerto,baudrate,stopbit,databits,parity,flowcon,flags);
-                    if(puertoserie!=null) {
-                        serialPortB=puertoserie;
-                    }
-                }else{
-                    puertoserie=serialPortB;
-                }
-                latch.countDown();
-                break;
-            }
-            case PuertosSerie.StrPortC:{
-                if(serialPortC==null) {
-                    puertoserie.open(Puerto,baudrate,stopbit,databits,parity,flowcon,flags);
-                    if(puertoserie!=null) {
-                        serialPortC=puertoserie;
-                    }
-                }else{
-                    puertoserie=serialPortC;
-                }
-                latch.countDown();
-                break;
-            }
-        }
-        if(puertoserie.get_Puerto()!=0){
-         //   System.out.println( Puerto+" INICIALIZADO PUERTO"+baudrate+" "+stopbit+" "+databits+" "+parity);
-        }
-        try {
-            latch.await(2000,TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-        }
-        return puertoserie;
-    }
-
-
-
-
     private void SettingsDef(){
         String tipo="";
         int num=0;int numbza=0;
-        SharedPreferences Preferencias=activity.getApplicationContext().getSharedPreferences("devicesService",Context.MODE_PRIVATE);
+        SharedPreferences Preferencias=ComService.activity.getApplicationContext().getSharedPreferences("devicesService",Context.MODE_PRIVATE);
         ArrayList<classDevice> Arraydevicesaux= new ArrayList<classDevice>();
         while(num<5){
             classDevice x=new classDevice();
@@ -267,7 +196,7 @@ public  class BalanzaService implements Serializable {
                         x.setSeteo(true);
                         x.setSalida("PuertoSerie 1");
                         x.setID(0);
-                        PreferencesDevicesManager.addDevice(x,activity);
+                        PreferencesDevicesManager.addDevice(x,ComService.activity);
                     }
                     break;
                 }
@@ -277,30 +206,30 @@ public  class BalanzaService implements Serializable {
         ;
     }
     protected void init(Boolean reset) {
+        Puertos = GestorPuertoSerie.getInstance();
+        ComService = com.service.ComService.getInstance();
         if(reset != null && reset){
-            ModbusA=null;ModbusB=null;ModbusC=null;
-            serialPortB=null;serialPortA=null;serialPortC=null;
+            Puertos.ModbusA=null;Puertos.ModbusB=null;Puertos.ModbusC=null;
+            Puertos.serialPortB=null;Puertos.serialPortA=null;Puertos.serialPortC=null;
             int i=1;
-            Balanzas auxbalanzas =  (Balanzas) Balanzas;
-            for (Balanza Balanza : auxbalanzas.balanzas.values()) {
+            for (BalanzaBase Balanza : balanzasInstancia.balanzas.values()) {
                 Balanza.stop(i);
                 i++;
             }
-            auxbalanzas.balanzas.clear();
-            Balanzas = auxbalanzas;
+            balanzasInstancia.balanzas.clear();
+            balanzasInstancia.balanzas= new HashMap<>();
         }
-       //Utils.clearCache(activity.getApplicationContext());
+       //Utils.clearCache(ComService.activity.getApplicationContext());
         SettingsDef();
-        Balanzas = new Balanzas();
-      //  Services= (Balanza)Balanzas;
+        balanzasInstancia = new Balanzas(); // Tipo concreto
+        Balanzas = balanzasInstancia;
         Impresoras = new Impresoras();
-            ArrayList<classDevice> balanzasList = PreferencesDevicesManager.get_listPorTipo(PreferencesDevicesManager.obtenerIndiceTipo("Balanza"),activity);
-            if(balanzasList.size()>=1 && balanzasList.get(0).getSeteo()){
-               Balanzas auxbalanzas = (Balanzas) Balanzas;
-                auxbalanzas.initializateBalanza(balanzasList);
-                Balanzas = auxbalanzas;
+            ArrayList<classDevice> balanzasList = PreferencesDevicesManager.get_listPorTipo(PreferencesDevicesManager.obtenerIndiceTipo("Balanza"),ComService.activity);
+            if(!balanzasList.isEmpty() && balanzasList.get(0).getSeteo()){
+                balanzasInstancia.initializateBalanza(balanzasList);
+                Balanzas = balanzasInstancia;
             }else{
-                Mensaje("El servicio tuvo error fatal",R.layout.item_customtoasterror,activity);
+                Mensaje("El servicio tuvo error fatal",R.layout.item_customtoasterror,ComService.activity);
             }
     }
     private class Impresoras implements Printer {
@@ -314,22 +243,23 @@ public  class BalanzaService implements Serializable {
         public  void ImprimirEstandar(Integer numImpresora, String etiqueta) {
 
             Integer numprint=numImpresora-1;
-            ArrayList<classDevice> Impresoralista = PreferencesDevicesManager.get_listPorTipo(PreferencesDevicesManager.obtenerIndiceTipo("Impresora"),activity);
+            ArrayList<classDevice> Impresoralista = PreferencesDevicesManager.get_listPorTipo(PreferencesDevicesManager.obtenerIndiceTipo("Impresora"),ComService.activity);
             try{
             if (Impresoralista != null & Impresoralista.get(numprint)!=null) {
                 int type=0;
+                PuertosSerie puerto=null;
                 switch (Impresoralista.get(numprint).getSalida()) {
                     case "PuertoSerie 1": {
-                        initPuertoSerie(PuertosSerie.StrPortA, 9600, 8, 1, 0, 0, 0);
+                        puerto= Puertos.initPuertoSerie(PuertosSerie.StrPortA, 9600, 8, 1, 0, 0, 0);
                         type=1; break;
                     }
                     case "PuertoSerie 2": {
-                        initPuertoSerie(PuertosSerie.StrPortB, 9600, 8, 1, 0, 0, 0);
+                        puerto=  Puertos.initPuertoSerie(PuertosSerie.StrPortB, 9600, 8, 1, 0, 0, 0);
                         type=2;
                         break;
                     }
                     case "PuertoSerie 3": {
-                        initPuertoSerie(PuertosSerie.StrPortC, 9600, 8, 1, 0, 0, 0);
+                        puerto= Puertos.initPuertoSerie(PuertosSerie.StrPortC, 9600, 8, 1, 0, 0, 0);
                         type=3;
                         break;
                     }
@@ -346,85 +276,191 @@ public  class BalanzaService implements Serializable {
                         break;
                     }
                 }
-                 ImprimirEstandar Impresora = new ImprimirEstandar(activity.getApplicationContext(), activity, etiqueta, numprint, serialPortA, type, Impresoralista.get(numprint));
+                 ImprimirEstandar Impresora = new ImprimirEstandar(ComService.activity.getApplicationContext(), ComService.activity, etiqueta, numprint, puerto, type, Impresoralista.get(numprint));
                 Impresora.EnviarEtiqueta();
 
             } else {
-                activity.runOnUiThread(new Runnable() {
+                ComService.activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Mensaje("No existe esta Impresora en configuracion Service", R.layout.item_customtoasterror, activity);
+                        Mensaje("No existe esta Impresora en configuracion Service", R.layout.item_customtoasterror, ComService.activity);
                     }
                 });
 
             }
             }catch(Exception e){
-                activity.runOnUiThread(new Runnable() {
+                ComService.activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Mensaje("No existe esta Impresora en configuracion Service", R.layout.item_customtoasterror, activity);
+                        Mensaje("No existe esta Impresora en configuracion Service", R.layout.item_customtoasterror, ComService.activity);
                     }
                 });
             }
         }
 
     }
-    /**
-     * Inicializa la conexión Modbus en el puerto especificado con los parámetros dados.
-     *
-     * @param Port El puerto serie a utilizar para la conexión Modbus (puede ser "PuertoSerie 1", "PuertoSerie 2", "PuertoSerie 3").
-     * @param Baud La velocidad de transmisión en baudios.
-     * @param Stopbit El número de bits de parada (generalmente 1 o 2).
-     * @param databit El número de bits de datos.
-     * @param Parity El tipo de paridad (Ninguna, Paridad Par, Paridad Impar).
-     * @return El objeto `ModbusReqRtuMaster` configurado con los parámetros dados.
-     */
-    public ModbusReqRtuMaster initializatemodbus(String Port, int Baud, int Stopbit, int databit, int Parity) {
-        CountDownLatch latch = new CountDownLatch(1);
-        ModbusReqRtuMaster Modbus = null;
-        try {
-            ModbusMasterRtu modbusMasterRtu = new ModbusMasterRtu();
-            switch (Port) {
-                case PuertosSerie.StrPortA: {
-                    // if (ModbusA == null) {
-                    ModbusA = modbusMasterRtu.init(Port, Baud, databit, Stopbit, Parity);
-                    //}
-                    Modbus = ModbusA;
-                    break;
-                }
-                case PuertosSerie.StrPortB: {
-                    //if (ModbusB == null) {
-                    ModbusB = modbusMasterRtu.init(Port, Baud, databit, Stopbit, Parity);
-                    // }
 
-                    Modbus = ModbusB;
-                    break;
+   private class Expansiones implements com.service.Interfaz.Expansiones {
+
+        @Override
+        public ExpansionManager getInstance(){
+            return ExpansionManager.getInstance();
+        }
+        @Override
+        public  void init(ExpansionManager.ExpansionesMessageListener Listener) {
+            //System.out.println("Expansiones init");
+            if(initializexpansionesbool) {
+                initializexpansionesbool = false;
+                ExpansionManager.getInstance().setListener(Listener);
+                ArrayList<classDevice> ExpansionesList = PreferencesDevicesManager.get_listPorTipo(PreferencesDevicesManager.obtenerIndiceTipo("Expansion"),ComService.activity);
+                int i = 0;
+                PuertosSerie port=null;
+                for (classDevice Expansion : ExpansionesList
+                ) {
+                    //System.out.println("Expansion SETEANDO");
+                    String strpuerto="";
+                    try {
+                        switch (Expansion.getSalida()) {
+                            case "PuertoSerie 1": {
+                                strpuerto= PuertosSerie.StrPortA;
+                                break;
+                            }
+                            case "PuertoSerie 2": {
+                                strpuerto= PuertosSerie.StrPortB;
+                                break;
+                            }
+                            case "PuertoSerie 3": {
+                                strpuerto= PuertosSerie.StrPortC;
+                                break;
+                            }
+                        }
+                        port =  Puertos.initPuertoSerie(strpuerto, Integer.parseInt(Expansion.getDireccion().get(0)), Integer.parseInt(Expansion.getDireccion().get(1)), Integer.parseInt(Expansion.getDireccion().get(2)), Integer.parseInt(Expansion.getDireccion().get(3)),0,0);
+                    } catch (NumberFormatException e) {
+                    }finally {
+                        for (int c = 0; c < ModelosClasesExpansiones.values().length; c++) {
+                            //   System.out.println(Objects.equals(Expansion.getModelo(), ModelosClasesExpansiones.values()[c].name()));
+                            if (Objects.equals(Expansion.getModelo(), ModelosClasesExpansiones.values()[c].name())) {
+                                ExpansionBase Exp = null;
+                                try {
+                                    Exp = ModelosClasesExpansiones.values()[c].getClase().getDeclaredConstructor(PuertosSerie.class, String.class, AppCompatActivity.class).newInstance(port, String.valueOf(Expansion.getID()), ComService.activity);
+                                } catch (Exception e) {
+                                }finally{
+                                    ExpansionManager.getInstance().addExpansion(i, Exp);
+
+                                }
+                            }
+                        }
+                        ExpansionManager.getInstance().init();
+                    }
+
                 }
-                case PuertosSerie.StrPortC: {
-                    //  if (ModbusC == null) {
-                    ModbusC = modbusMasterRtu.init(Port, Baud, databit, Stopbit, Parity);
-                    // }
-                    Modbus = ModbusC;
-                    break;
-                }
+            }else{
+                ExpansionManager.getInstance().setListener(Listener);
             }
-        } catch (Exception e) {
-          //  System.out.println("ERROR MODBUS" +e.getMessage());
-        } finally {
-//                System.out.println("SETEADO MODBUS");
-            latch.countDown();
         }
-        try {
-            latch.await(3000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            e.getMessage();
-        }
-     //   System.out.println("INIT MODBUS "+ModbusA.get_Puerto());//+" "+ModbusB.get_Puerto()+" "+ModbusC.get_Puerto());
-        return Modbus;
+
     }
-    
-    private class Balanzas implements Balanza{
-        private Map<Integer, Balanza> balanzas = new HashMap<>();
+
+    private class Devices implements com.service.Interfaz.Devices {
+        @Override
+        public DeviceManager getInstance(){
+            return DeviceManager.getInstance();
+        }
+        @Override
+        public  void init(DeviceManager.DeviceMessageListener Listener) {
+
+            //System.out.println("Device init");
+            if(initializeDevicesbool) {
+                initializeDevicesbool = false;
+                DeviceManager.getInstance().setListener(Listener);
+                ArrayList<classDevice> Devicelist = PreferencesDevicesManager.get_listPorTipo(PreferencesDevicesManager.obtenerIndiceTipo("Expansion"),ComService.activity);
+                int i = 0;
+                for (classDevice Device : Devicelist
+                ) {
+                    PuertosSerie port = null;
+                    String strpuerto="";
+//                System.out.println("Device SETEANDO");
+                    switch (Device.getSalida()) {
+                        case "PuertoSerie 1": {
+                            strpuerto= PuertosSerie.StrPortA;
+                            break;
+                        }
+                        case "PuertoSerie 2": {
+                            strpuerto= PuertosSerie.StrPortB;
+                            break;
+                        }
+                        case "PuertoSerie 3": {
+                            strpuerto= PuertosSerie.StrPortC;
+                            break;
+                        }
+                    }
+                    port =  Puertos.initPuertoSerie(strpuerto, Integer.parseInt(Device.getDireccion().get(0)), Integer.parseInt(Device.getDireccion().get(1)), Integer.parseInt(Device.getDireccion().get(2)), Integer.parseInt(Device.getDireccion().get(3)),0,0);
+                    if(port!=null) {
+                        // System.out.println("DEBUG Device add in "+Device.getSalida());
+                        DeviceManager.getInstance().addDevice(i, port);
+                        i++;
+                    }
+
+                }
+            }else{
+                DeviceManager.getInstance().setListener(Listener);
+            }
+        }
+        @Override
+        public void Write(int num, String Msj){
+            DeviceManager.getInstance().sendCommandToDevice(num,Msj);
+        }
+    }
+    private class Escaneres implements com.service.Interfaz.Escaneres{
+        @Override
+        public EscannerManager getInstance(){
+            return EscannerManager.getInstance();
+        }
+        @Override
+        public  void init(EscannerManager.ScannerMessageListener Listener) {
+            // System.out.println("escanner init");
+            if(initializeescannerbool) {
+                initializeescannerbool = false;
+                EscannerManager.getInstance().setListener(Listener);
+                ArrayList<classDevice> Escannerlist = PreferencesDevicesManager.get_listPorTipo(PreferencesDevicesManager.obtenerIndiceTipo("Escaner"),ComService.activity);
+                int i = 0;
+                for (classDevice Escaner : Escannerlist
+                ) {
+                    PuertosSerie port = null;
+                    String strpuerto="";
+//                System.out.println("Device SETEANDO");
+                    switch (Escaner.getSalida()) {
+                        case "PuertoSerie 1": {
+                            strpuerto= PuertosSerie.StrPortA;
+                            break;
+                        }
+                        case "PuertoSerie 2": {
+                            strpuerto= PuertosSerie.StrPortB;
+                            break;
+                        }
+                        case "PuertoSerie 3": {
+                            strpuerto= PuertosSerie.StrPortC;
+                            break;
+                        }
+                    }
+                    port =  Puertos.initPuertoSerie(strpuerto, Integer.parseInt(Escaner.getDireccion().get(0)), Integer.parseInt(Escaner.getDireccion().get(1)), Integer.parseInt(Escaner.getDireccion().get(2)), Integer.parseInt(Escaner.getDireccion().get(3)),0,0);
+
+                    if(port!=null) {
+                        EscannerManager.getInstance().addScanner(i, port);
+                        //System.out.println("escanner add in "+Escaner.getSalida());
+                        i++;
+                    }
+
+                }
+            }else{
+                EscannerManager.getInstance().setListener(Listener);
+            }
+        }
+    }
+    private Balanzas balanzasInstancia;
+    public Balanza Balanzas;
+    protected class Balanzas implements Balanza{
+        private Map<Integer, BalanzaBase> balanzas = new HashMap<>();
         /**
          * Obtiene una balanza específica desde la lista de balanzas.
          *
@@ -447,13 +483,14 @@ public  class BalanzaService implements Serializable {
          */
         private void initializateBalanza(ArrayList<classDevice> balanzasList) {
             int numeroSalidas = 0;
-            boolean[] arr = PreferencesDevicesManager.get_numeroSalidasBZA(activity);
-
+            boolean[] arr = PreferencesDevicesManager.get_numeroSalidasBZA(ComService.activity);
             for (Boolean x : arr) {
                 if (x) {
                     numeroSalidas++;
+
                 }
             }
+
             CountDownLatch latch = new CountDownLatch(balanzasList.size());
             for (classDevice balanza: balanzasList) {//for (int posicionBza = 0; posicionBza < balanzasList.size(); posicionBza++) {
                 String puerto = "";
@@ -482,73 +519,52 @@ public  class BalanzaService implements Serializable {
                         puerto="";
                     }
                 }
-                    for (int i = 0; i < ModelosClasesBzas.values().length; i++) {
-                //        System.out.println("DEBUG BALANZA MODELO "+balanza.getModelo()+"   "+ModelosClasesBzas.values()[i].name()+ "EQUAL "+Objects.equals(balanza.getModelo(),ModelosClasesBzas.values()[i].name()));
-                        if(Objects.equals(balanza.getModelo(),ModelosClasesBzas.values()[i].name())){
-                            try {
-                                int j=1;
-                                //int MultipleBZA = ModelosClasesBzas.values()[i].GetnumMultiBzas();
-                                //for (int j = 1; j < MultipleBZA+1; j++) {
+                for (int i = 0; i < ModelosClasesBzas.values().length; i++) {
+                    //        System.out.println("DEBUG BALANZA MODELO "+balanza.getModelo()+"   "+ModelosClasesBzas.values()[i].name()+ "EQUAL "+Objects.equals(balanza.getModelo(),ModelosClasesBzas.values()[i].name()));
+                    if(Objects.equals(balanza.getModelo(),ModelosClasesBzas.values()[i].name())){
+                        try {
+                            int j=1;
+                            //int MultipleBZA = ModelosClasesBzas.values()[i].GetnumMultiBzas();
+                            //for (int j = 1; j < MultipleBZA+1; j++) {
 
-                               //     System.out.println("DEBUG CHANGE BZA size " + balanzas.size());
-                                    BalanzaBase bza = ModelosClasesBzas.values()[i].getClase().getDeclaredConstructor(String.class, int.class, AppCompatActivity.class, OnFragmentChangeListener.class, int.class).newInstance(puerto, balanza.getID(), activity, fragmentChangeListener,j);
-                                    bza.init(balanzas.size() + 1);
-                                    balanzas.put(balanzas.size()+1, bza);
-                                //}
-                                latch.countDown();
+                            //     System.out.println("DEBUG CHANGE BZA size " + balanzas.size());
+                            BalanzaBase bza = ModelosClasesBzas.values()[i].getClase().getDeclaredConstructor(String.class, int.class, AppCompatActivity.class, OnFragmentChangeListener.class, int.class).newInstance(puerto, balanza.getID(), ComService.activity, ComService.fragmentChangeListener,j);
+                            bza.init(balanzas.size() + 1);
+                            balanzas.put(balanzas.size()+1, bza);
+                            //}
+                            latch.countDown();
 
-                                // habria que controlar si tiene 2 bzas, si tiene modbus etc.
-                            } catch (IllegalAccessException | InvocationTargetException |
-                                     InstantiationException | NoSuchMethodException e) {
-                            } finally {
-                            }
+                            // habria que controlar si tiene 2 bzas, si tiene modbus etc.
+                        } catch (IllegalAccessException | InvocationTargetException |
+                                 InstantiationException | NoSuchMethodException e) {
+                            System.out.println("OLA?"+e.getMessage());
+                        } finally {
                         }
                     }
-                    try{
-                        latch.await(balanzasList.size() * 2000, TimeUnit.MILLISECONDS);
-                    } catch (InterruptedException e) {
-
-                    }
+                }
+            }
+            try{
+                latch.await(balanzasList.size() * 2000, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                System.out.println("OLA?2"+e.getMessage());
             }
         }
-
-            @Override
         public String getEstado(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
+            BalanzaBase balanza = balanzas.get(numBza);
             if (balanza != null) {
                 return balanza.getEstado(numBza);
             }
             return null;
         }
-        @Override
         public void setEstado(int numBza, String estadoBZA) {
-            Balanza balanza = balanzas.get(numBza);
+            BalanzaBase balanza = balanzas.get(numBza);
             if (balanza != null) {
                 balanza.setEstado(numBza,estadoBZA);
             }
         }
-
-
-
-        @Override
-        public void setID(int numID,int numBza) {
-            Balanza balanza = balanzas.get(numBza);
-            if (balanza != null) {
-                balanza.setID(numID,numBza);
-            }
-        }
-        @Override
-        public Integer getID(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
-            if (balanza != null) {
-                return balanza.getID(numBza);
-            }else{
-                return null;
-            }
-        }
         @Override
         public Float getNeto(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
+            BalanzaBase balanza = balanzas.get(numBza);
             if (balanza != null) {
                 return balanza.getNeto(numBza);
             }
@@ -556,7 +572,7 @@ public  class BalanzaService implements Serializable {
         }
         @Override
         public String getNetoStr(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
+            BalanzaBase balanza = balanzas.get(numBza);
             if (balanza != null) {
 
                 return balanza.getNetoStr(numBza);
@@ -567,7 +583,7 @@ public  class BalanzaService implements Serializable {
 
         @Override
         public Float getBruto(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
+            BalanzaBase balanza = balanzas.get(numBza);
             if (balanza != null) {
                 return balanza.getBruto(numBza);
             }
@@ -576,7 +592,7 @@ public  class BalanzaService implements Serializable {
 
         @Override
         public String getBrutoStr(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
+            BalanzaBase balanza = balanzas.get(numBza);
             if (balanza != null) {
                 return balanza.getBrutoStr(numBza);
             }
@@ -585,7 +601,7 @@ public  class BalanzaService implements Serializable {
 
         @Override
         public Float getTara(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
+            BalanzaBase balanza = balanzas.get(numBza);
             if (balanza != null) {
                 return balanza.getTara(numBza);
             }
@@ -594,7 +610,7 @@ public  class BalanzaService implements Serializable {
 
         @Override
         public String getTaraStr(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
+            BalanzaBase balanza = balanzas.get(numBza);
             if (balanza != null) {
                 return balanza.getTaraStr(numBza);
             }
@@ -603,7 +619,7 @@ public  class BalanzaService implements Serializable {
 
         @Override
         public void setTara(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
+            BalanzaBase balanza = balanzas.get(numBza);
             if (balanza != null) {
                 balanza.setTara(numBza);
             }
@@ -611,7 +627,7 @@ public  class BalanzaService implements Serializable {
 
         @Override
         public void setCero(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
+            BalanzaBase balanza = balanzas.get(numBza);
             if (balanza != null) {
                 balanza.setCero(numBza);
             }
@@ -619,7 +635,7 @@ public  class BalanzaService implements Serializable {
 
         @Override
         public void setTaraDigital(int numBza, float TaraDigital) {
-            Balanza balanza = balanzas.get(numBza);
+            BalanzaBase balanza = balanzas.get(numBza);
             if (balanza != null) {
                 balanza.setTaraDigital(numBza, TaraDigital);
             }
@@ -627,7 +643,7 @@ public  class BalanzaService implements Serializable {
 
         @Override
         public String getTaraDigital(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
+            BalanzaBase balanza = balanzas.get(numBza);
             if (balanza != null) {
                 return balanza.getTaraDigital(numBza);
             }
@@ -635,42 +651,8 @@ public  class BalanzaService implements Serializable {
         }
 
         @Override
-        public Boolean getBandaCero(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
-            if (balanza != null) {
-                return balanza.getBandaCero(numBza);
-            }
-            return null;
-        }
-
-        @Override
-        public void setBandaCero(int numBza, Boolean bandaCeroi) {
-            Balanza balanza = balanzas.get(numBza);
-            if (balanza != null) {
-                balanza.setBandaCero(numBza,bandaCeroi);
-            }
-        }
-
-        @Override
-        public Float getBandaCeroValue(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
-            if (balanza != null) {
-                return balanza.getBandaCeroValue(numBza);
-            }
-            return null;
-        }
-
-        @Override
-        public void setBandaCeroValue(int numBza, float bandaCeroValue) {
-            Balanza balanza = balanzas.get(numBza);
-            if (balanza != null) {
-                balanza.setBandaCeroValue(numBza,bandaCeroValue);
-            }
-        }
-
-        @Override
         public Boolean getEstable(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
+            BalanzaBase balanza = balanzas.get(numBza);
             if (balanza != null) {
                 return balanza.getEstable(numBza);
             }
@@ -679,7 +661,7 @@ public  class BalanzaService implements Serializable {
 
         @Override
         public String format(int numero, String peso) {
-            Balanza balanza = balanzas.get(numero);
+            BalanzaBase balanza = balanzas.get(numero);
             if (balanza != null) {
                 return balanza.format(numero,peso);
             }
@@ -689,13 +671,13 @@ public  class BalanzaService implements Serializable {
         @Override
         public String getUnidad(int numBza) {
             try {
-                Balanza balanza = balanzas.get(numBza);
+                BalanzaBase balanza = balanzas.get(numBza);
                 if (balanza != null) {
                     return balanza.getUnidad(numBza);
                 }
 
             } catch (IllegalArgumentException e) {
-                //mainActivity.Mensaje("Error:"+e.getMessage(), R.layout.item_customtoasterror);
+                //mainComService.activity.Mensaje("Error:"+e.getMessage(), R.layout.item_customtoasterror);
             }
             return null;
 
@@ -703,7 +685,7 @@ public  class BalanzaService implements Serializable {
 
         @Override
         public String getPicoStr(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
+            BalanzaBase balanza = balanzas.get(numBza);
             if (balanza != null) {
                 return balanza.getPicoStr(numBza);
             }
@@ -712,224 +694,39 @@ public  class BalanzaService implements Serializable {
 
         @Override
         public Float getPico(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
+            BalanzaBase balanza = balanzas.get(numBza);
             if (balanza != null) {
                 return balanza.getPico(numBza);
             }
             return null;
         }
-        @Override
         public void init(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
+            BalanzaBase balanza = balanzas.get(numBza);
             if (balanza != null) {
                 balanza.init(numBza);
             }
         }
-
-        @Override
-        public void escribir(String msj, int numBza) {
-            balanzas.get(numBza).escribir(msj, numBza);
-        }
-        @Override
         public void stop(int numBza) {
             for (int i = 0; i < balanzas.size(); i++) {
                 balanzas.get(i).stop(0);
             }
         }
-        @Override
-        public void start(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
-            if (balanza != null) {
-                balanza.start(numBza);
-            }
-        }
-        @Override
-        public Boolean calibracionHabilitada(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
-            if (balanza != null) {
-               return balanza.calibracionHabilitada(numBza);
-            }
-            return null;
-        }
-        @Override
+
         public void openCalibracion(int numBza) {
-                Balanza balanza = balanzas.get(numBza);
-                if (balanza != null) {
-                    balanza.openCalibracion(numBza);
-                }else{
-                    Mensaje("Balanza "+numBza+" debe inicializarse",R.layout.item_customtoasterror,activity);
-                }
+            BalanzaBase balanza = balanzas.get(numBza);
+            if (balanza != null) {
+                balanza.openCalibracion(numBza);
+            }else{
+                Mensaje("Balanza "+numBza+" debe inicializarse",R.layout.item_customtoasterror,ComService.activity);
+            }
         }
         @Override
         public Boolean getSobrecarga(int numBza) {
-            Balanza balanza = balanzas.get(numBza);
+            BalanzaBase balanza = balanzas.get(numBza);
             if (balanza != null) {
-               return balanza.getSobrecarga(numBza);
+                return balanza.getSobrecarga(numBza);
             }
             return null;
-        }
-    }
-
-    /**
-     * Obtiene la instancia del gestor de expansiones.
-     * @return la instancia de ExpansionManager.
-     */
-    public ExpansionManager getInstanceExpansiones(){
-        return ExpansionManager.getInstance();
-    }
-    /**
-     * Inicializa las expansiones, configurando el listener y configurando los puertos serie.
-     * @param Listener el listener para las actualizaciones de expansiones.
-     */
-    public  void initExpansiones(ExpansionManager.ExpansionesMessageListener Listener) {
-        //System.out.println("Expansiones init");
-        if(initializexpansionesbool) {
-            initializexpansionesbool = false;
-            ExpansionManager.getInstance().setListener(Listener);
-            ArrayList<classDevice> ExpansionesList = PreferencesDevicesManager.get_listPorTipo(PreferencesDevicesManager.obtenerIndiceTipo("Expansion"),activity);
-            int i = 0;
-            PuertosSerie port=null;
-            for (classDevice Expansion : ExpansionesList
-            ) {
-              //System.out.println("Expansion SETEANDO");
-                String strpuerto="";
-                try {
-                    switch (Expansion.getSalida()) {
-                        case "PuertoSerie 1": {
-                            strpuerto= PuertosSerie.StrPortA;
-                            break;
-                        }
-                        case "PuertoSerie 2": {
-                            strpuerto= PuertosSerie.StrPortB;
-                            break;
-                        }
-                        case "PuertoSerie 3": {
-                            strpuerto= PuertosSerie.StrPortC;
-                          break;
-                        }
-                    }
-                    port =  initPuertoSerie(strpuerto, Integer.parseInt(Expansion.getDireccion().get(0)), Integer.parseInt(Expansion.getDireccion().get(1)), Integer.parseInt(Expansion.getDireccion().get(2)), Integer.parseInt(Expansion.getDireccion().get(3)),0,0);
-                } catch (NumberFormatException e) {
-                }finally {
-                for (int c = 0; c < ModelosClasesExpansiones.values().length; c++) {
-                 //   System.out.println(Objects.equals(Expansion.getModelo(), ModelosClasesExpansiones.values()[c].name()));
-                    if (Objects.equals(Expansion.getModelo(), ModelosClasesExpansiones.values()[c].name())) {
-                            ExpansionBase Exp = null;
-                            try {
-                                Exp = ModelosClasesExpansiones.values()[c].getClase().getDeclaredConstructor(PuertosSerie.class, String.class, AppCompatActivity.class).newInstance(port, String.valueOf(Expansion.getID()), activity);
-                            } catch (Exception e) {
-                            }finally{
-                                        ExpansionManager.getInstance().addExpansion(i, Exp);
-
-                            }
-                    }
-                }
-                ExpansionManager.getInstance().init();
-                }
-
-            }
-        }else{
-            ExpansionManager.getInstance().setListener(Listener);
-        }
-    }
-    /**
-     * Obtiene la instancia del gestor de dispositivos.
-     * @return la instancia de DeviceManager.
-     */
-    public DeviceManager getInstanceDevices(){
-        return DeviceManager.getInstance();
-    }
-    /**
-     * Inicializa los dispositivos, configurando el listener y configurando los puertos serie.
-     * @param Listener el listener para las actualizaciones de dispositivos.
-     */
-    public  void initDevices(DeviceManager.DeviceMessageListener Listener) {
-
-        //System.out.println("Device init");
-        if(initializeDevicesbool) {
-            initializeDevicesbool = false;
-            DeviceManager.getInstance().setListener(Listener);
-            ArrayList<classDevice> Devicelist = PreferencesDevicesManager.get_listPorTipo(PreferencesDevicesManager.obtenerIndiceTipo("Expansion"),activity);
-            int i = 0;
-            for (classDevice Device : Devicelist
-            ) {
-                PuertosSerie port = null;
-                String strpuerto="";
-//                System.out.println("Device SETEANDO");
-                switch (Device.getSalida()) {
-                        case "PuertoSerie 1": {
-                            strpuerto= PuertosSerie.StrPortA;
-                            break;
-                        }
-                        case "PuertoSerie 2": {
-                            strpuerto= PuertosSerie.StrPortB;
-                            break;
-                        }
-                        case "PuertoSerie 3": {
-                            strpuerto= PuertosSerie.StrPortC;
-                            break;
-                        }
-                    }
-                port =  initPuertoSerie(strpuerto, Integer.parseInt(Device.getDireccion().get(0)), Integer.parseInt(Device.getDireccion().get(1)), Integer.parseInt(Device.getDireccion().get(2)), Integer.parseInt(Device.getDireccion().get(3)),0,0);
-                if(port!=null) {
-                   // System.out.println("DEBUG Device add in "+Device.getSalida());
-                    DeviceManager.getInstance().addDevice(i, port);
-                    i++;
-                }
-
-            }
-        }else{
-            DeviceManager.getInstance().setListener(Listener);
-        }
-    }
-    /**
-     * Obtiene la instancia del gestor de escáneres.
-     * @return la instancia de EscannerManager.
-     */
-    public EscannerManager getInstanceEscaneres(){
-        return EscannerManager.getInstance();
-    }
-    /**
-     * Inicializa los escáneres, configurando el listener y configurando los puertos serie.
-     * @param Listener el listener para las actualizaciones de escáneres.
-     */
-    public  void initEscanner(EscannerManager.ScannerMessageListener Listener) {
-       // System.out.println("escanner init");
-        if(initializeescannerbool) {
-            initializeescannerbool = false;
-            EscannerManager.getInstance().setListener(Listener);
-            ArrayList<classDevice> Escannerlist = PreferencesDevicesManager.get_listPorTipo(PreferencesDevicesManager.obtenerIndiceTipo("Escaner"),activity);
-            int i = 0;
-            for (classDevice Escaner : Escannerlist
-            ) {
-                PuertosSerie port = null;
-                String strpuerto="";
-//                System.out.println("Device SETEANDO");
-                switch (Escaner.getSalida()) {
-                    case "PuertoSerie 1": {
-                        strpuerto= PuertosSerie.StrPortA;
-                        break;
-                    }
-                    case "PuertoSerie 2": {
-                        strpuerto= PuertosSerie.StrPortB;
-                        break;
-                    }
-                    case "PuertoSerie 3": {
-                        strpuerto= PuertosSerie.StrPortC;
-                        break;
-                    }
-                }
-                port =  initPuertoSerie(strpuerto, Integer.parseInt(Escaner.getDireccion().get(0)), Integer.parseInt(Escaner.getDireccion().get(1)), Integer.parseInt(Escaner.getDireccion().get(2)), Integer.parseInt(Escaner.getDireccion().get(3)),0,0);
-
-                if(port!=null) {
-                    EscannerManager.getInstance().addScanner(i, port);
-                    //System.out.println("escanner add in "+Escaner.getSalida());
-                    i++;
-                }
-
-            }
-        }else{
-            EscannerManager.getInstance().setListener(Listener);
         }
     }
 
@@ -944,22 +741,10 @@ public  class BalanzaService implements Serializable {
 
 
 
-    /**
-     * Envía un mensaje a un dispositivo escáner específico.
-     * @param num el número de dispositivo escáner al que se enviará el mensaje.
-     * @param Msj el mensaje que se enviará al dispositivo escáner.
-     */
-  public  void escribirEscaner(int num,String Msj){
-        DeviceManager.getInstance().sendCommandToDevice(num,Msj);
-    }
+
 
     /**
      * Abre el fragmento del servicio y pasa los argumentos necesarios.
      */
-    public void openServiceFragment(){
-        ServiceFragment fragment = Servicefragment.newInstance(this);
-        Bundle args = new Bundle();
-        args.putSerializable("instanceService", this);
-        fragmentChangeListener.openFragmentService( fragment,args);
-    }
+
 }

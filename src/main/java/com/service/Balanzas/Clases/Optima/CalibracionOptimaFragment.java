@@ -30,6 +30,8 @@ import androidx.fragment.app.Fragment;
 
 
 import com.service.BalanzaService;
+import com.service.Balanzas.Clases.BalanzaBase;
+import com.service.ComService;
 import com.service.Comunicacion.ButtonProvider;
 import com.service.Comunicacion.ButtonProviderSingleton;
 import com.service.Comunicacion.PuertosSerie.PuertosSerie;
@@ -64,7 +66,7 @@ public class CalibracionOptimaFragment extends Fragment {
 
     public float Bruto=0,Tara=0,Neto=0/*,pico=0,taraDigital=0,pesoUnitario=0.5F,pesoBandaCero=0F*/;
     public Boolean lasttanque = true,BooleanRESET=false,btSeteobool=true,bt_homebool=true,bt_resetbool=true,btCalibracionbool=true,enviarparambool=true,bt_iniciarCalibracionbool=true,btReajusteCerobool=true/*,bandaCero =true,inicioBandaPeso=false*/;
-    public String estable="",read,estado=Balanza.M_VERIFICANDO_MODO/*,ultimaCalibracion="",brutoStr="0",netoStr="0",taraStr="0",taraDigitalStr="0",picoStr="0"*/;
+    public String estable="",read,estado=BalanzaBase.M_VERIFICANDO_MODO/*,ultimaCalibracion="",brutoStr="0",netoStr="0",taraStr="0",taraDigitalStr="0",picoStr="0"*/;
     public int /*puntoDecimal=1,acumulador=0,*/indiceCalibracion=1,numero=1;
     Boolean stoped=false;
     private boolean isCollapsed = false;
@@ -86,11 +88,11 @@ public class CalibracionOptimaFragment extends Fragment {
         //mainActivity=(MainActivity)activity;
          viewMang = inflater.inflate(R.layout.standar_calibracion_v2,container,false);
         buttonProvider = ButtonProviderSingleton.getInstance().getButtonProvider();
-        estado=Balanza.M_MODO_CALIBRACION;
+        estado= BalanzaBase.M_MODO_CALIBRACION;
         if (getArguments() != null) {
             BZA = (OPTIMA_I)getArguments().getSerializable("instance");
             Service =  BalanzaService.getInstance();//(BalanzaService) getArguments().getSerializable("instanceService");
-            activity = Service.activity;//activity = (AppCompatActivity)BZA.activity;//BZA.activity;
+            activity = ComService.getInstance().activity;//activity = (AppCompatActivity)BZA.activity;//BZA.activity;
             BZA.abrircalib();
 
         }
@@ -271,19 +273,19 @@ private String leertoggles(RadioGroup toggle,Integer id){ //NUEVO
                                     activity.runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            estado= Balanza.M_MODO_BALANZA;
+                                            estado= BalanzaBase.M_MODO_BALANZA;
                                             //BZA.setPesoUnitario(PreferencesDevicesManager.getPesoUnitario(BZA.Nombre,BZA.numBza, activity));//BZA.setPesoUnitario( BZA.getPesoUnitario());
-                                            BZA.Estado =  Balanza.M_MODO_BALANZA;
+                                            BZA.Estado =  BalanzaBase.M_MODO_BALANZA;
                                             try {
-                                                estado= Balanza.M_MODO_BALANZA;
+                                                estado= BalanzaBase.M_MODO_BALANZA;
                                               //  BZA.setPesoUnitario(PreferencesDevicesManager.getPesoUnitario(BZA.Nombre,BZA.numBza, activity));// BZA.setPesoUnitario( BZA.getPesoUnitario());
-                                                BZA.Estado =  Balanza.M_MODO_BALANZA;
+                                                BZA.Estado =  BalanzaBase.M_MODO_BALANZA;
                                                 reader.stopReading();
                                                 BZA.readers.startReading();
                                                 reader=null;
                                                 bt_homebool=true;
                                                 dialog.cancel();
-                                                Service.openServiceFragment();
+                                                ComService.getInstance().openServiceFragment();
                                             }catch (Exception e){
                                              //   System.out.println("OLA?"+e.getMessage());
                                             }
@@ -315,10 +317,10 @@ private String leertoggles(RadioGroup toggle,Integer id){ //NUEVO
                                     reader.stopReading();
                                     reader=null;
                                     BZA.readers.startReading();
-                                    estado= Balanza.M_MODO_BALANZA;
+                                    estado= BalanzaBase.M_MODO_BALANZA;
                                     // BZA.setPesoUnitario(PreferencesDevicesManager.getPesoUnitario(BZA.Nombre,BZA.numBza, activity)); //BZA.setPesoUnitario( BZA.getPesoUnitario());
-                                    BZA.Estado =  Balanza.M_MODO_BALANZA;
-                                    Service.openServiceFragment();
+                                    BZA.Estado =  BalanzaBase.M_MODO_BALANZA;
+                                    ComService.getInstance().openServiceFragment();
                                     bt_homebool=true;
                                     dialog2.cancel();
                                 }catch(Exception e){

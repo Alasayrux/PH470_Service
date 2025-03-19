@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.service.BalanzaService;
 import com.service.Balanzas.Clases.BalanzaBase;
+import com.service.Balanzas.Clases.GestorPuertoSerie;
+import com.service.ComService;
 import com.service.Comunicacion.Modbus.Req.ModbusReqRtuMaster;
 import com.service.Comunicacion.OnFragmentChangeListener;
 import com.service.Interfaz.Balanza;
@@ -30,7 +32,7 @@ public class ITW410_FORM extends BalanzaBase implements Balanza.ITW410, Serializ
         super(Puerto,id,activity,fragmentChangeListener,numbza410);
         try {
             Service= BalanzaService.getInstance();
-            this.ModbusRtuMaster = Service.initializatemodbus(Puerto,Integer.parseInt(Bauddef),Integer.parseInt(StopBdef),Integer.parseInt(DataBdef),Integer.parseInt(Paritydef));
+            this.ModbusRtuMaster = GestorPuertoSerie.getInstance().initializatemodbus(Puerto,Integer.parseInt(Bauddef),Integer.parseInt(StopBdef),Integer.parseInt(DataBdef),Integer.parseInt(Paritydef));
             Thread.sleep(200);
         } catch (InterruptedException e) {
         } finally {
@@ -892,7 +894,7 @@ public class ITW410_FORM extends BalanzaBase implements Balanza.ITW410, Serializ
     }
     protected void salir_cal(){
         // open principal
-        Service.fragmentChangeListener.openFragmentPrincipal();
+        ComService.getInstance().fragmentChangeListener.openFragmentPrincipal();
     }
     protected   void setCerocal(){
         Runnable runnable = new Runnable() {

@@ -569,7 +569,7 @@ private final Context context;
     public ANDGF3000(String Puerto, int id, AppCompatActivity activity, OnFragmentChangeListener fragmentChangeListener,int idaux) {
         super(Puerto,id, activity,fragmentChangeListener,idaux);
         try {
-            this.serialPort = BalanzaService.getInstance().initPuertoSerie(Puerto,Integer.parseInt(Bauddef),Integer.parseInt(DataBdef),Integer.parseInt(StopBdef),Integer.parseInt(Paritydef),0,0);
+            this.serialPort = GestorPuertoSerie.getInstance().initPuertoSerie(Puerto,Integer.parseInt(Bauddef),Integer.parseInt(DataBdef),Integer.parseInt(StopBdef),Integer.parseInt(Paritydef),0,0);
         } finally {
             this.numBza = (this.serialPort.get_Puerto()*10)+ id;
         }

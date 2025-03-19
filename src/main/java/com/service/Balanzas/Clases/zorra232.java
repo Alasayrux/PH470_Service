@@ -23,7 +23,7 @@ public class zorra232 extends BalanzaBase {
     public zorra232(String puerto, int id, AppCompatActivity activity, OnFragmentChangeListener fragmentChangeListener, int numMultipleBza) {
         super(puerto, id, activity, fragmentChangeListener, numMultipleBza);
         try {
-            this.serialPort = BalanzaService.getInstance().initPuertoSerie(puerto, Integer.parseInt(Bauddef), Integer.parseInt(DataBdef), Integer.parseInt(StopBdef), Integer.parseInt(Paritydef), 1, 0);
+            this.serialPort = GestorPuertoSerie.getInstance().initPuertoSerie(puerto, Integer.parseInt(Bauddef), Integer.parseInt(DataBdef), Integer.parseInt(StopBdef), Integer.parseInt(Paritydef), 1, 0);
             Thread.sleep(300);
         } catch (InterruptedException e) {
 

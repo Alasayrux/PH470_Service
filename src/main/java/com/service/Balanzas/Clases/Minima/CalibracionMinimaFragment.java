@@ -34,6 +34,8 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
 import com.service.BalanzaService;
+import com.service.Balanzas.Clases.BalanzaBase;
+import com.service.ComService;
 import com.service.Comunicacion.ButtonProvider;
 import com.service.Comunicacion.ButtonProviderSingleton;
 import com.service.Comunicacion.PuertosSerie.PuertosSerie;
@@ -55,7 +57,7 @@ public class CalibracionMinimaFragment extends Fragment {
     Handler mHandler= new Handler();
     Toast toast=null;
    // public static final String M_VERIFICANDO_MODO="VERIFICANDO_MODO",M_MODO_CALIBRACION="MODO_CALIBRACION",M_ERROR_COMUNICACION="M_ERROR_COMUNICACION"
-    public String estado=Balanza.M_VERIFICANDO_MODO,picoStr="0",estable="";//,ultimaCalibracion="",brutoStr="0",netoStr="0",taraStr="0", taraDigitalStr="0";
+    public String estado= BalanzaBase.M_VERIFICANDO_MODO,picoStr="0",estable="";//,ultimaCalibracion="",brutoStr="0",netoStr="0",taraStr="0", taraDigitalStr="0";
     public float bruto =0, tara =0, neto =0;//taraDigital=0,pico=0,pesoUnitario=0.5F,pesoBandaCero=0F,
     public Boolean stoped=false,isCollapsed = false,lastTanque = true,boolBtSeteo =true,boolBtHome =true,boolBtReset =true,boolBtCalibracion =true,boolEnviarParam =true,boolBtIniciarCalibracion =true,boolBtReajusteCero =true;/*,bandaCero =true,inicioBandaPeso=false*/;
     public int initialWidth = 258,indiceCalibracion=1;//,puntoDecimal=1,acumulador=0;
@@ -93,7 +95,7 @@ public class CalibracionMinimaFragment extends Fragment {
         if (getArguments() != null) {
             BZA = (MINIMA_I) getArguments().getSerializable("instance");
             Service =  BalanzaService.getInstance();//(BalanzaService) getArguments().getSerializable("instanceService");
-            activity = Service.activity;//BZA.activity;//BZA.activity;
+            activity = ComService.getInstance().activity;//BZA.activity;//BZA.activity;
            BZA.abrirCalib();
         }
         return view;
@@ -825,13 +827,13 @@ public class CalibracionMinimaFragment extends Fragment {
                                     @Override
                                     public void run() {
 
-                                        estado= Balanza.M_MODO_BALANZA;
+                                        estado= BalanzaBase.M_MODO_BALANZA;
                                         // BZA.setPesoUnitario(PreferencesDevicesManager.getPesoUnitario(BZA.Nombre,BZA.numBza, activity));
-                                        BZA.Estado = Balanza.M_MODO_BALANZA;
+                                        BZA.Estado = BalanzaBase.M_MODO_BALANZA;
                                         reader.stopReading();
                                         BZA.readers.startReading();
                                         reader=null;
-                                        Service.openServiceFragment();
+                                        ComService.getInstance().openServiceFragment();
                                         boolBtHome =true;
                                         dialog.cancel();
                                     }
