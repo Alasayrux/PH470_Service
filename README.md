@@ -32,28 +32,23 @@
 
 ****************************************************************Poliformismo****************************************************************
 
-        Balanza bzaEstandar = BalanzaService.getInstance().Balanzas;
+        Balanza bzaEstandar = BalanzaService.getInstance().Balanzas; // Casteo a una balanza especifica
         Balanza bzaEspecifica = bzaEstandar.getBalanza(1);
         if(BalanzaService.ModelosClasesBzas.ITW410.compararInstancia(1)){
             Balanza.ITW410 bza = (Balanza.ITW410)bzaEspecifica;
             bza.Itw410FrmGetUltimoIndice(0);
         };
-        List<String> x = PreferencesDevicesManager.obtenerAliasDeModelos(BalanzaService.ModelosClasesBzas.values());
-        for (int i = 0; i <x.size() ; i++) {
-            switch (x.get(i)){
-                case "Optima": {
-                    if( BalanzaService.ModelosClasesBzas.Optima.compararInstancia(1)) {
-                        Balanza.Optima_Image bza = (Balanza.Optima_Image) bzaEspecifica;
-                        bza.getEstadoBajaBateria(0);
+        for (int i = 0; i <BalanzaService.ModelosClasesBzas.values().length ; i++) { // Ejecutar codigo segun modelo
+            if(BalanzaService.ModelosClasesBzas.values()[i].compararInstancia(1)) {
+                BalanzaService.ModelosClasesBzas modelo = BalanzaService.ModelosClasesBzas.values()[i];
+                switch (modelo) {
+                    case Optima: {
+                       
                     }
-                    break;
-                }
-                case "ITW410": {
-                    if( BalanzaService.ModelosClasesBzas.ITW410.compararInstancia(1)) {
-                        Balanza.ITW410 bza = (Balanza.ITW410) bzaEspecifica;
-                        bza.Itw410FrmGetUltimoIndice(0);
+                    case ITW410: {
+
                     }
-                    break;
+                    
                 }
             }
         }
@@ -66,3 +61,6 @@
         Tipo a utilizar para la clase BalanzaService.Balanza es la interfaz "**Balanza**"
         ej: BalanzaService Service = BalanzaService.getInstance()
         ej: Balanza Balanzas = Service.Balanzas
+
+
+        
