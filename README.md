@@ -59,10 +59,10 @@
         }
         
 ****************************************************************otros****************************************************************
-BalanzaService.getInstance().Impresoras.ImprimirEstandar(1,""); //imprime en la impresora 1
+        BalanzaService.getInstance().Impresoras.ImprimirEstandar(1,""); //imprime en la impresora 1
 
 
 
-Tipo a utilizar para la clase BalanzaService.Balanza es la interfaz "**Balanza**"
-ej: BalanzaService Service = BalanzaService.getInstance()
-ej: Balanza Balanzas = Service.Balanzas
+        Tipo a utilizar para la clase BalanzaService.Balanza es la interfaz "**Balanza**"
+        ej: BalanzaService Service = BalanzaService.getInstance()
+        ej: Balanza Balanzas = Service.Balanzas
