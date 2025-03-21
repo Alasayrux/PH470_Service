@@ -226,7 +226,7 @@ public interface Balanza {
              */
             String getFiltro4(int numBza);
     }
-    interface Optima_Image{
+    interface Optima_Image extends Balanza{
         /**
          * Obtiene el estado del centro cero de la balanza.
          *

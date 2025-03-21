@@ -95,7 +95,7 @@ public  class BalanzaService implements Serializable {
             ModelosClasesBzas( Class<? extends BalanzaBase> clase) {
                 this.clase = clase ;//.getDeclaredConstructor().newInstance();
             }
-        public boolean instancecompare(int nbza) {
+        public boolean compararInstancia(int nbza) {
                 BalanzaBase balanza = BalanzaService.getInstance().Balanzas.getBalanza(nbza);
                 return clase.isInstance(balanza);
             }
