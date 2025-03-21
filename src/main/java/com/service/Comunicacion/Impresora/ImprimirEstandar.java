@@ -51,44 +51,24 @@ public class ImprimirEstandar {
     }
 
     //bindService connection
+    public void imprimirRS232(){
+        if(serialPort!=null){
 
+            //  System.out.println("p1");
+            ImprimirRS232 imprimirRS232= new ImprimirRS232(serialPort);imprimirRS232.Imprimir(etiqueta);
+        }else {
+            Utils.Mensaje("Error para imprimir por puerto serie A", R.layout.item_customtoasterror, activity);
+        }
+    }
     public void EnviarEtiqueta(){
 
       //  System.out.println("etiquetamagic"+etiqueta+impresora.getSalida());
 //        int modo=consultaModo(num);
         switch (modo){
-            case 1:{ // PORTSERIE A
-                if(serialPort!=null){
-
-                  //  System.out.println("p1");
-                    ImprimirRS232 imprimirRS232= new ImprimirRS232(serialPort);
-                    imprimirRS232.Imprimir(etiqueta);
-                }else {
-                    Utils.Mensaje("Error para imprimir por puerto serie A", R.layout.item_customtoasterror, activity);
-                }
-                break;
-            }
-            case 2:{ //PORTSERIE B
-                if(serialPort!=null){
-
-                    //System.out.println("p2");
-                    ImprimirRS232 imprimirRS232= new ImprimirRS232(serialPort);
-                    imprimirRS232.Imprimir(etiqueta);
-                }else {
-                    Utils.Mensaje("Error para imprimir por puerto serie B", R.layout.item_customtoasterror, activity);
-                }
-                break;
-            }
-            case 3: { //PORTSERIE C
-                if (serialPort != null) {
-
-                  //  System.out.println("p3");
-                    ImprimirRS232 imprimirRS232 = new ImprimirRS232(serialPort);
-                    imprimirRS232.Imprimir(etiqueta);
-                } else {
-                    Utils.Mensaje("Error para imprimir por puerto serie C", R.layout.item_customtoasterror, activity);
-                }
-                break;
+            case 1:
+            case 2:
+            case 3: {
+                imprimirRS232();
             }
             case 4: { // USB
 

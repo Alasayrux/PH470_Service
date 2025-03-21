@@ -4,7 +4,6 @@ import static com.service.Utils.Mensaje;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -17,8 +16,6 @@ import com.service.Balanzas.Clases.Optima.OPTIMA_I;
 import com.service.Balanzas.Clases.R31P30_I;
 import com.service.Balanzas.Clases.SPIDER3;
 import com.service.Balanzas.Clases.zorra232;
-import com.service.Comunicacion.Modbus.ModbusMasterRtu;
-import com.service.Comunicacion.Modbus.Req.ModbusReqRtuMaster;
 import com.service.Comunicacion.Impresora.ImprimirEstandar;
 import com.service.Comunicacion.OnFragmentChangeListener;
 import com.service.Comunicacion.PuertosSerie.DeviceManager;
@@ -51,9 +48,9 @@ public  class BalanzaService implements Serializable {
     public com.service.Interfaz.Devices Devices = new Devices();
     public com.service.Interfaz.Escaneres Escaneres = new Escaneres();
 
-    public Printer Impresoras;
+    public Printer Impresoras  = new Impresoras();
     //leandrito
-    protected GestorPuertoSerie Puertos = new GestorPuertoSerie();
+    protected GestorPuertoSerie Puertos = GestorPuertoSerie.getInstance();
 
     private static boolean initializeDevicesbool=true,initializeescannerbool=true, initializexpansionesbool =true;
     //holanda
@@ -92,13 +89,16 @@ public  class BalanzaService implements Serializable {
         }
     }
 
-    public static enum ModelosClasesBzas {
+    public  enum ModelosClasesBzas {
             Optima(OPTIMA_I.class), Minima(MINIMA_I.class), R31p30(R31P30_I.class), ITW410(ITW410_FORM.class), Spider3(SPIDER3.class), Andgf3000(ANDGF3000.class), zebra232(zorra232.class);//, NuevaBza(OPTIMA_I.class);
             public Class<? extends BalanzaBase> clase;
             ModelosClasesBzas( Class<? extends BalanzaBase> clase) {
                 this.clase = clase ;//.getDeclaredConstructor().newInstance();
             }
-
+        public boolean instancecompare(int nbza) {
+                BalanzaBase balanza = BalanzaService.getInstance().Balanzas.getBalanza(nbza);
+                return clase.isInstance(balanza);
+            }
            public Class<? extends BalanzaBase> getClase() {
                return clase;
            }
@@ -143,7 +143,7 @@ public  class BalanzaService implements Serializable {
         }
     }
 
-    private static ComService ComService;
+    private static ComService ComService ;
     private static BalanzaService Service=null;
     /**
      * Inicializa el servicio `BalanzaService` si aún no está inicializado.
@@ -175,8 +175,7 @@ public  class BalanzaService implements Serializable {
         String tipo="";
         int num=0;int numbza=0;
         SharedPreferences Preferencias=ComService.activity.getApplicationContext().getSharedPreferences("devicesService",Context.MODE_PRIVATE);
-        ArrayList<classDevice> Arraydevicesaux= new ArrayList<classDevice>();
-        while(num<5){
+        while(num<PreferencesDevicesManager.salidaMap.size()){
             classDevice x=new classDevice();
             tipo= Preferencias.getString("Tipo_"+num,"fin");
             if(tipo.equals("fin")&&num==0){
@@ -206,8 +205,7 @@ public  class BalanzaService implements Serializable {
         ;
     }
     protected void init(Boolean reset) {
-        Puertos = GestorPuertoSerie.getInstance();
-        ComService = com.service.ComService.getInstance();
+
         if(reset != null && reset){
             Puertos.ModbusA=null;Puertos.ModbusB=null;Puertos.ModbusC=null;
             Puertos.serialPortB=null;Puertos.serialPortA=null;Puertos.serialPortC=null;
@@ -223,7 +221,7 @@ public  class BalanzaService implements Serializable {
         SettingsDef();
         balanzasInstancia = new Balanzas(); // Tipo concreto
         Balanzas = balanzasInstancia;
-        Impresoras = new Impresoras();
+
             ArrayList<classDevice> balanzasList = PreferencesDevicesManager.get_listPorTipo(PreferencesDevicesManager.obtenerIndiceTipo("Balanza"),ComService.activity);
             if(!balanzasList.isEmpty() && balanzasList.get(0).getSeteo()){
                 balanzasInstancia.initializateBalanza(balanzasList);

@@ -1,5 +1,6 @@
 package com.service;
 
+import android.bluetooth.BluetoothClass;
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public  class PreferencesDevicesManager {
 
@@ -185,8 +187,10 @@ public  class PreferencesDevicesManager {
         ObjEditor.apply();
     }
     public static int obtenerIndiceModeloPorTipo(int tipo, String modelo) {
-        String tipox="";
-        switch (tipo){
+        List<String> keys = new ArrayList<>(deviceMap.keySet());
+
+        String tipox= keys.get(tipo);
+       /* switch (tipo){
             case 0:{
                 tipox ="Balanza";
                 break;
@@ -206,7 +210,7 @@ public  class PreferencesDevicesManager {
                 tipox="Dispositivo";
                 break;
             }
-        }
+        }*/
 
         List<String> modelos = deviceMap.get(tipox);
         if (modelos != null) {
@@ -251,70 +255,27 @@ public  class PreferencesDevicesManager {
       String tipo="";
       int num=0;
       int numeroSalidas=0;
-      boolean[] array = new boolean[7];
+      boolean[] array = new boolean[salidaMap.size()];
       while(!tipo.equals("fin")) {
           tipo = Preferencias.getString("Tipo_" + num, "fin");
-          if(tipo.contains("fin") && num==0){
+          /*if(tipo.contains("fin") && num==0){
               tipo="Balanza";
-          }
-
+          }*/
           if(!tipo.equals("Borrado")&&!tipo.equals("fin")) {
               String Salida = Preferencias.getString("Salida_" + num, "PuertoSerie 1");
-             // System.out.println("Salida "+Salida);
-              switch (Salida) {
-                  case "PuertoSerie 1": {
-                      if(!array[0]){
-                          array[0]=true;
+              int index =0;
+              for (String key : salidaMap.keySet()) {
+                  if (Objects.equals(salidaMap.get(key), Salida)) {
+                       if (!array[index]) {
+                          array[index] = true;
                           numeroSalidas++;
                       }
-                      break;
                   }
-                  case "PuertoSerie 2": {
-                      if(!array[1]){
-
-                          array[1]=true;
-                          numeroSalidas++;
-                      }
-                      break;
-                  }
-                  case "PuertoSerie 3": {
-                      if(!array[2]){
-
-                          array[2]=true;
-                          numeroSalidas++;
-                      }
-                      break;
-                  }case "Red":{
-                      if(!array[3]){
-
-                          array[3]=true;
-                          numeroSalidas++;
-                      }
-                      break;
-                  }
-                  case "Bluetooth":{
-                      if(!array[4]){
-
-                          array[4]=true;
-                          numeroSalidas++;
-                      }
-                      break;}
-                  case "USB":{
-                      if(!array[5]){
-
-                          array[5]=true;
-                          numeroSalidas++;
-                      }break;
-
-                  } default:{
-                      break;
-                  }
+                  index++;
               }
-
           }
           num++;
       }
-
       return array;//numeroSalidas;
   }
     public static ArrayList<classDevice> get_listIndexPorTipo(int TipoDevice,AppCompatActivity activity){
@@ -484,14 +445,10 @@ public  class PreferencesDevicesManager {
         SharedPreferences Preferencias = activity.getApplicationContext().getSharedPreferences("devicesService", Context.MODE_PRIVATE);
         String tipo="";
         int num=0;
-        int numbza=1;
-
         Map<String, Integer> tipoCounters = new HashMap<>();
-        tipoCounters.put("Balanza", 1);
-        tipoCounters.put("Impresora", 1);
-        tipoCounters.put("Expansion", 1);
-        tipoCounters.put("Escaner", 1);
-        tipoCounters.put("Dispositivo", 1);
+        for (String tipox : deviceMap.keySet()) {
+            tipoCounters.put(tipox, 1);
+        }
         while(!tipo.equals("fin")) {
             classDevice balanza= new classDevice();
             tipo = Preferencias.getString("Tipo_" + num, "fin");
