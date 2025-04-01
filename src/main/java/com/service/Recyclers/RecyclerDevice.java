@@ -16,9 +16,7 @@
     import androidx.constraintlayout.widget.ConstraintLayout;
     import androidx.recyclerview.widget.RecyclerView;
 
-    import com.service.BalanzaService;
-    import com.service.Interfaz.classDevice;
-    import com.service.PreferencesDevicesManager;
+    import com.service.estructuras.classDevice;
     import com.service.R;
 
     import java.util.ArrayList;

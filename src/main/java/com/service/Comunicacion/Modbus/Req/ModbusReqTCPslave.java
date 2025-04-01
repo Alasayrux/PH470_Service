@@ -1,5 +1,7 @@
 package com.service.Comunicacion.Modbus.Req;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.zgkxzx.modbus4And.ModbusFactory;
@@ -26,10 +28,6 @@ public class ModbusReqTCPslave {
 
     private boolean isInit = false;
 
-    private ModbusReqTCPslave() {
-
-    }
-
     /**
      * get modbus instance
      *
@@ -52,68 +50,45 @@ public class ModbusReqTCPslave {
      *
      * @throws ModbusInitException
      */
-    public void init(final OnRequestBack<String> onRequestBack) {
+    public ModbusSlaveSet init(final OnRequestBack<String> onRequestBack,BasicProcessImage image,String host) {
+
         ModbusFactory mModbusFactory = new ModbusFactory();
         IpParameters params = new IpParameters();
-
         params.setHost(modbusParam.host);
         params.setPort(modbusParam.port);
         params.setEncapsulated(modbusParam.encapsulated);
+        //mModbusSlave = new com.zgkxzx.modbus4And.ip.tcp.TcpSlave(8000,modbusParam.encapsulated);
+        mModbusSlave= mModbusFactory.createTcpSlave(modbusParam.encapsulated);
+        mModbusSlave.addProcessImage(image);
+        Handler mainHandler = new Handler(Looper.getMainLooper());
+        try {
+            mModbusSlave.start();
+            Log.d(TAG, "Modbus4Android init success");
+            isInit = true;
 
-
-        mModbusSlave = mModbusFactory.createTcpSlave(modbusParam.encapsulated);
-        mModbusSlave.addProcessImage(getModscanProcessImage(1));
-        executorService.submit(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    mModbusSlave.start();
-                } catch (ModbusInitException e) {
-                    mModbusSlave.stop();
-                    isInit = false;
-                    Log.d(TAG, "Modbus4Android init failed " + e);
-                    onRequestBack.onFailed("Modbus4Android init failed ");
-                    return;
+            // Pasar la llamada de éxito al hilo principal
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    onRequestBack.onSuccess("Modbus4Android init success");
                 }
-                Log.d(TAG, "Modbus4Android init success");
-                isInit = true;
-                onRequestBack.onSuccess("Modbus4Android init success");
+            });
+        } catch (ModbusInitException e) {
+            System.out.println("ERROR MODBUS Init no entiendo nada :/   "+e.getMessage());
+            mModbusSlave.stop();
+            isInit = false;
+            Log.d(TAG, "Modbus4Android init failed " + e);
 
-            }
-        });
-
+            // Pasar la llamada de error al hilo principal
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    onRequestBack.onFailed("Modbus4Android init failed ");
+                }
+            });
+        }
+        return mModbusSlave;
     }
-    static BasicProcessImage getModscanProcessImage(int slaveId) {
-        BasicProcessImage processImage = new BasicProcessImage(slaveId);
-        processImage.setInvalidAddressValue(Short.MIN_VALUE);
-        processImage.setHoldingRegister(0,(short) 0);
-        processImage.setHoldingRegister(1,(short) 0);
-        processImage.setHoldingRegister(2,(short) 0);
-        processImage.setHoldingRegister(3,(short) 0);
-        processImage.setHoldingRegister(4,(short) 0);
-        processImage.setHoldingRegister(5,(short) 0);
-        processImage.setHoldingRegister(6,(short) 0);
-        processImage.setHoldingRegister(7,(short) 0);
-        processImage.setHoldingRegister(8,(short) 0);
-        processImage.setHoldingRegister(9,(short) 0);
-        // Add an image listener.
-        processImage.addListener(new ProcessImageListener() {
-            @Override
-            public void coilWrite(int i, boolean b, boolean b1) {
-
-            }
-
-            @Override
-            public void holdingRegisterWrite(int i, short i1, short i2) {
-                //i = offset
-                //i1 = oldvalue
-                //i2 = newvalue
-                System.out.println("HR at " + i + " was set from " + i1 + " to " + i2);
-            }
-        });
-        return processImage;
-    }
-
     /**
      * destory the modbus4Android instance
      */

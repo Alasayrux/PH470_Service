@@ -7,32 +7,38 @@ import android.content.SharedPreferences;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.service.Balanzas.Clases.ANDGF3000;
-import com.service.Balanzas.Clases.BalanzaBase;
-import com.service.Balanzas.Clases.GestorPuertoSerie;
-import com.service.Balanzas.Clases.ITW410.ITW410_FORM;
-import com.service.Balanzas.Clases.Minima.MINIMA_I;
-import com.service.Balanzas.Clases.Optima.OPTIMA_I;
-import com.service.Balanzas.Clases.R31P30_I;
-import com.service.Balanzas.Clases.SPIDER3;
-import com.service.Balanzas.Clases.zorra232;
-import com.service.Comunicacion.Impresora.ImprimirEstandar;
-import com.service.Comunicacion.OnFragmentChangeListener;
-import com.service.Comunicacion.PuertosSerie.DeviceManager;
-import com.service.Comunicacion.PuertosSerie.EscannerManager;
-import com.service.Expansiones.Clases.ExpansionManager;
+import com.service.Devices.Balanzas.Clases.ANDGF3000;
+import com.service.Devices.Balanzas.Clases.BalanzaBase;
+import com.service.Comunicacion.GestorPuertoSerie;
+import com.service.Devices.Balanzas.Clases.ITW410.ITW410_FORM;
+import com.service.Devices.Balanzas.Clases.Minima.MINIMA_I;
+import com.service.Devices.Balanzas.Clases.Optima.OPTIMA_I;
+import com.service.Devices.Balanzas.Clases.R31P30_I;
+import com.service.Devices.Balanzas.Clases.SPIDER3;
+import com.service.Devices.Balanzas.Clases.zorra232;
+import com.service.Devices.Dispositivos.Clases.DispositivoBase;
+import com.service.Devices.Dispositivos.Clases.MasterDispositivos;
+import com.service.Devices.Dispositivos.Clases.SlaveDispositivos;
+import com.service.Devices.Impresora.ImprimirEstandar;
+import com.service.Interfaz.Dispositivo;
+import com.service.Interfaz.OnFragmentChangeListener;
+import com.service.Devices.Expansiones.Clases.EscannerManager;
+import com.service.Devices.Expansiones.Clases.ExpansionManager;
 import com.service.Comunicacion.PuertosSerie.PuertosSerie;
-import com.service.Expansiones.Clases.AnalogicoC;
-import com.service.Expansiones.Clases.EntradasC;
-import com.service.Expansiones.Clases.ExpansionBase;
-import com.service.Expansiones.Clases.MixtoC;
-import com.service.Expansiones.Clases.SalidasC;
+import com.service.Devices.Expansiones.Clases.AnalogicoC;
+import com.service.Devices.Expansiones.Clases.EntradasC;
+import com.service.Devices.Expansiones.Clases.ExpansionBase;
+import com.service.Devices.Expansiones.Clases.MixtoC;
+import com.service.Devices.Expansiones.Clases.SalidasC;
 import com.service.Interfaz.Balanza;
 import com.service.Interfaz.Printer;
-import com.service.Interfaz.classDevice;
+import com.service.Interfaz.dispositivoBase;
+import com.service.estructuras.classDevice;
 
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,7 +51,9 @@ public  class BalanzaService implements Serializable {
 
    // public  Balanza Services;
     public com.service.Interfaz.Expansiones Expansiones = new Expansiones();
-    public com.service.Interfaz.Devices Devices = new Devices();
+    public Dispositivo.DeviceFachade Dispositivos;
+
+    private InternalDispositivos DispositivosInstancia;
     public com.service.Interfaz.Escaneres Escaneres = new Escaneres();
 
     public Printer Impresoras  = new Impresoras();
@@ -55,7 +63,7 @@ public  class BalanzaService implements Serializable {
     private static boolean initializeDevicesbool=true,initializeescannerbool=true, initializexpansionesbool =true;
     //holanda
 
-    public static enum ModelosClasesExpansiones {
+    public enum ModelosClasesExpansiones {
         Entradas(EntradasC.class), Salidas(SalidasC.class),Combinadas(MixtoC.class),Analogicos(AnalogicoC.class);
         public Class<? extends ExpansionBase> clase;
         ModelosClasesExpansiones( Class<? extends ExpansionBase> clase) {
@@ -78,27 +86,142 @@ public  class BalanzaService implements Serializable {
                 return new ArrayList<>(); // Devuelve una lista vacía en caso de error
             }
         }
-        private String getFieldValueStr(String fieldName) throws Exception {
-            return (String)clase.getField(fieldName).get(null);
+        private String getFieldValueStr(String fieldName){
+            try {
+                Field field = clase.getDeclaredField(fieldName);
+                field.setAccessible(true);
+                if (field.getType().equals(String.class)) {
+                    return (String) field.get(null);
+                } else {
+                    System.out.println("El campo no es de tipo String");
+                }
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                System.out.println("Error al obtener el valor del campo: " + fieldName+" "+e);
+            }
+            return fieldName;
         }
-        private Boolean getFieldValueBool(String fieldName) throws Exception {
-            return (Boolean) clase.getField(fieldName).get(null);
+
+        private Boolean getFieldValueBool(String fieldName){
+            try {
+                Field field = clase.getDeclaredField(fieldName);
+                field.setAccessible(true);
+                if (field.getType().equals(Boolean.class)) {
+                    return (Boolean) field.get(null);
+                } else {
+                    System.out.println("El campo no es de tipo Boolean");
+                }
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                System.out.println("Error al obtener el valor del campo: " + fieldName+" "+e);
+            }
+            return false;
         }
-        private int getFieldValueInt(String fieldName) throws Exception {
-            return (int)clase.getField(fieldName).get(null);
-        }
+
+        private int getFieldValueInt(String fieldName) {
+            try {
+                Field field = clase.getDeclaredField(fieldName);
+                field.setAccessible(true);
+                if (field.getType().equals(int.class)) {
+                    return (int) field.get(null);
+                } else {
+                    System.out.println("El campo no es de tipo int");
+                }
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                System.out.println("Error al obtener el valor del campo: " + fieldName+" "+ e);
+            }
+            return 0;
+        };
     }
 
-    public  enum ModelosClasesBzas {
-            Optima(OPTIMA_I.class), Minima(MINIMA_I.class), R31p30(R31P30_I.class), ITW410(ITW410_FORM.class), Spider3(SPIDER3.class), Andgf3000(ANDGF3000.class), zebra232(zorra232.class);//, NuevaBza(OPTIMA_I.class);
+    public enum ModelosClasesDispositivos {
+        Dispositivo(com.service.Devices.Dispositivos.Clases.Dispositivo.class), Master(MasterDispositivos.class),Slave(SlaveDispositivos.class);
+        public Class<? extends com.service.Interfaz.Dispositivo> clase;
+        ModelosClasesDispositivos(Class<? extends com.service.Interfaz.Dispositivo> clase) {
+            this.clase = clase ;//.getDeclaredConstructor().newInstance();
+        }
+
+        public boolean compararInstancia(int ndevice) {
+            try {
+                dispositivoBase Device = BalanzaService.getInstance().Dispositivos.getDispositivo(ndevice);
+                return clase.isInstance(Device);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+        public Class<? extends com.service.Interfaz.Dispositivo> getClase() {
+            return clase;
+        }
+        public ArrayList<String> getConfiguraciones() {
+            try {
+                ArrayList<String> list= new ArrayList<>();
+                list.add(getFieldValueStr("Bauddef"));
+                list.add(getFieldValueStr("StopBdef"));
+                list.add(getFieldValueStr("DataBdef"));
+                list.add(getFieldValueStr("Paritydef"));
+                return list;
+            } catch (Exception e) {
+                System.err.println("Error obteniendo configuraciones: " + e.getMessage());
+                return new ArrayList<>(); // Devuelve una lista vacía en caso de error
+            }
+        }
+        private String getFieldValueStr(String fieldName){
+            try {
+                Field field = clase.getDeclaredField(fieldName);
+                field.setAccessible(true);
+                if (field.getType().equals(String.class)) {
+                    return (String) field.get(null);
+                } else {
+                    System.out.println("El campo no es de tipo String");
+                }
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                System.out.println("Error al obtener el valor del campo: " + fieldName+" "+e);
+            }
+            return fieldName;
+        }
+
+        private Boolean getFieldValueBool(String fieldName){
+            try {
+                Field field = clase.getDeclaredField(fieldName);
+                field.setAccessible(true);
+                if (field.getType().equals(Boolean.class)) {
+                    return (Boolean) field.get(null);
+                } else {
+                    System.out.println("El campo no es de tipo Boolean");
+                }
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                System.out.println("Error al obtener el valor del campo: " + fieldName+" "+e);
+            }
+            return false;
+        }
+
+        private int getFieldValueInt(String fieldName) {
+            try {
+                Field field = clase.getDeclaredField(fieldName);
+                field.setAccessible(true);
+                if (field.getType().equals(int.class)) {
+                    return (int) field.get(null);
+                } else {
+                    System.out.println("El campo no es de tipo int");
+                }
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                System.out.println("Error al obtener el valor del campo: " + fieldName+" "+ e);
+            }
+            return 0;
+        };
+    }
+    public enum ModelosClasesBzas {
+            Optima(OPTIMA_I.class), Minima(MINIMA_I.class), R31p30(R31P30_I.class), ITW410(ITW410_FORM.class), Spider3(SPIDER3.class), Andgf3000(ANDGF3000.class), Zorra232(zorra232.class);//, NuevaBza(OPTIMA_I.class);
             public Class<? extends BalanzaBase> clase;
             ModelosClasesBzas( Class<? extends BalanzaBase> clase) {
                 this.clase = clase ;//.getDeclaredConstructor().newInstance();
             }
         public boolean compararInstancia(int nbza) {
+            try {
                 BalanzaBase balanza = BalanzaService.getInstance().Balanzas.getBalanza(nbza);
                 return clase.isInstance(balanza);
+            } catch (Exception e) {
+                return false;
             }
+        }
            public Class<? extends BalanzaBase> getClase() {
                return clase;
            }
@@ -132,15 +255,50 @@ public  class BalanzaService implements Serializable {
                    return new ArrayList<>(); // Devuelve una lista vacía en caso de error
                }
                 }
-        private String getFieldValueStr(String fieldName) throws Exception {
-            return (String)clase.getField(fieldName).get(null);
+        private String getFieldValueStr(String fieldName){
+            try {
+                Field field = clase.getDeclaredField(fieldName);
+                field.setAccessible(true);
+                if (field.getType().equals(String.class)) {
+                    return (String) field.get(null);
+                } else {
+                    System.out.println("El campo no es de tipo String");
+                }
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                System.out.println("Error al obtener el valor del campo: " + fieldName+" "+e);
+            }
+            return fieldName;
         }
-        private Boolean getFieldValueBool(String fieldName) throws Exception {
-            return (Boolean) clase.getField(fieldName).get(null);
+
+        private Boolean getFieldValueBool(String fieldName){
+            try {
+                Field field = clase.getDeclaredField(fieldName);
+                field.setAccessible(true);
+                if (field.getType().equals(Boolean.class)) {
+                    return (Boolean) field.get(null);
+                } else {
+                    System.out.println("El campo no es de tipo Boolean");
+                }
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                System.out.println("Error al obtener el valor del campo: " + fieldName+" "+e);
+            }
+            return false;
         }
-        private int getFieldValueInt(String fieldName) throws Exception {
-            return (int)clase.getField(fieldName).get(null);
-        }
+
+        private int getFieldValueInt(String fieldName) {
+            try {
+                Field field = clase.getDeclaredField(fieldName);
+                field.setAccessible(true);
+                if (field.getType().equals(int.class)) {
+                    return (int) field.get(null);
+                } else {
+                    System.out.println("El campo no es de tipo int");
+                }
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                System.out.println("Error al obtener el valor del campo: " + fieldName+" "+ e);
+            }
+            return 0;
+        };
     }
 
     private static ComService ComService ;
@@ -161,6 +319,7 @@ public  class BalanzaService implements Serializable {
         }
         return Service;
     }
+
     /**
      * Obtiene la instancia actual de `BalanzaService`.
      *
@@ -205,7 +364,7 @@ public  class BalanzaService implements Serializable {
         ;
     }
     protected void init(Boolean reset) {
-
+    CountDownLatch latch = new CountDownLatch(1);
         if(reset != null && reset){
             Puertos.ModbusA=null;Puertos.ModbusB=null;Puertos.ModbusC=null;
             Puertos.serialPortB=null;Puertos.serialPortA=null;Puertos.serialPortC=null;
@@ -219,6 +378,18 @@ public  class BalanzaService implements Serializable {
         }
        //Utils.clearCache(ComService.activity.getApplicationContext());
         SettingsDef();
+        ArrayList<classDevice> Devicelist = PreferencesDevicesManager.get_listPorTipo(PreferencesDevicesManager.obtenerIndiceTipo("Dispositivo"),ComService.activity);
+            if(!Devicelist.isEmpty() && Devicelist.get(0).getSeteo()){
+                try {
+                    DispositivosInstancia.stop();
+                } catch (Exception e) {
+                }finally {
+                DispositivosInstancia = new InternalDispositivos();
+                DispositivosInstancia.InitializateDevices(Devicelist);
+                Dispositivos = DispositivosInstancia;
+            }
+        }
+
         balanzasInstancia = new Balanzas(); // Tipo concreto
         Balanzas = balanzasInstancia;
 
@@ -226,9 +397,15 @@ public  class BalanzaService implements Serializable {
             if(!balanzasList.isEmpty() && balanzasList.get(0).getSeteo()){
                 balanzasInstancia.initializateBalanza(balanzasList);
                 Balanzas = balanzasInstancia;
+                latch.countDown();
             }else{
                 Mensaje("El servicio tuvo error fatal",R.layout.item_customtoasterror,ComService.activity);
             }
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+
+        }
     }
     private class Impresoras implements Printer {
 
@@ -281,7 +458,7 @@ public  class BalanzaService implements Serializable {
                 ComService.activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Mensaje("No existe esta Impresora en configuracion Service", R.layout.item_customtoasterror, ComService.activity);
+                    //    Mensaje("No existe esta Impresora en configuracion Service", R.layout.item_customtoasterror, ComService.activity);
                     }
                 });
 
@@ -290,7 +467,7 @@ public  class BalanzaService implements Serializable {
                 ComService.activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Mensaje("No existe esta Impresora en configuracion Service", R.layout.item_customtoasterror, ComService.activity);
+                     //   Mensaje("No existe esta Impresora en configuracion Service", R.layout.item_customtoasterror, ComService.activity);
                     }
                 });
             }
@@ -359,25 +536,16 @@ public  class BalanzaService implements Serializable {
 
     }
 
-    private class Devices implements com.service.Interfaz.Devices {
+    private class InternalDispositivos implements Dispositivo.DeviceFachade, dispositivoBase {
+        private Map<Integer, dispositivoBase> dispositivosMap = new HashMap<>();
         @Override
-        public DeviceManager getInstance(){
-            return DeviceManager.getInstance();
+        public dispositivoBase getDispositivo(int nDispositivo) {
+            return dispositivosMap.containsKey(nDispositivo) ? dispositivosMap.get(nDispositivo) : null;
         }
-        @Override
-        public  void init(DeviceManager.DeviceMessageListener Listener) {
-
-            //System.out.println("Device init");
-            if(initializeDevicesbool) {
-                initializeDevicesbool = false;
-                DeviceManager.getInstance().setListener(Listener);
-                ArrayList<classDevice> Devicelist = PreferencesDevicesManager.get_listPorTipo(PreferencesDevicesManager.obtenerIndiceTipo("Expansion"),ComService.activity);
-                int i = 0;
-                for (classDevice Device : Devicelist
-                ) {
-                    PuertosSerie port = null;
+        public  void InitializateDevices(ArrayList<classDevice> Devicelist) {
+             CountDownLatch latch = new CountDownLatch(Devicelist.size()-1);
+                for (classDevice Device : Devicelist) {
                     String strpuerto="";
-//                System.out.println("Device SETEANDO");
                     switch (Device.getSalida()) {
                         case "PuertoSerie 1": {
                             strpuerto= PuertosSerie.StrPortA;
@@ -392,21 +560,54 @@ public  class BalanzaService implements Serializable {
                             break;
                         }
                     }
-                    port =  Puertos.initPuertoSerie(strpuerto, Integer.parseInt(Device.getDireccion().get(0)), Integer.parseInt(Device.getDireccion().get(1)), Integer.parseInt(Device.getDireccion().get(2)), Integer.parseInt(Device.getDireccion().get(3)),0,0);
-                    if(port!=null) {
-                        // System.out.println("DEBUG Device add in "+Device.getSalida());
-                        DeviceManager.getInstance().addDevice(i, port);
-                        i++;
+                    System.out.println("MODELO"+ Device.getModelo()+ " "+(dispositivosMap.size()+1));
+                    for (int x = 0; x < ModelosClasesDispositivos.values().length; x++) {
+                        if(Objects.equals(Device.getModelo(),ModelosClasesDispositivos.values()[x].name())){
+                            try {
+                                int j=1;
+                                Dispositivo Dispositivo = ModelosClasesDispositivos.values()[x].getClase().getDeclaredConstructor(String.class, classDevice.class, int.class).newInstance(strpuerto, Device,dispositivosMap.size()+1);
+                                dispositivosMap.put(dispositivosMap.size()+1, (dispositivoBase)Dispositivo);
+                                latch.countDown();
+                            } catch (IllegalAccessException | InvocationTargetException |
+                                     InstantiationException | NoSuchMethodException e) {
+                                System.out.println("OLA?"+e.getMessage());
+                            } finally {
+                            }
+                        }
                     }
-
+                   /* switch (Device.getModelo()){
+                        case "Master": {
+                            MasterDispositivos x = new MasterDispositivos(strpuerto,Device,dispositivosMap.size()-1);
+                            dispositivosMap.put(dispositivosMap.size()-1,x);
+                            break;
+                        }
+                        case "Slave": {
+                            SlaveDispositivos x = new SlaveDispositivos(strpuerto, Device,dispositivosMap.size()-1);
+                            dispositivosMap.put(dispositivosMap.size()-1,x);
+                            break;
+                        }
+                        case "Dispositivo":{
+                            com.service.Devices.Dispositivos.Clases.Dispositivo x = new com.service.Devices.Dispositivos.Clases.Dispositivo(strpuerto,Device,dispositivosMap.size()-1);
+                            dispositivosMap.put(dispositivosMap.size()-1,x);
+                            break;
+                        }
+                    }*/
                 }
-            }else{
-                DeviceManager.getInstance().setListener(Listener);
+            try {
+                latch.await(Devicelist.size() * 2000, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+
             }
+
         }
+
+
         @Override
-        public void Write(int num, String Msj){
-            DeviceManager.getInstance().sendCommandToDevice(num,Msj);
+        public void stop() {
+            for (Map.Entry<Integer, dispositivoBase> entry : dispositivosMap.entrySet()) {
+                dispositivoBase valor = entry.getValue();
+                valor.stop();
+            }
         }
     }
     private class Escaneres implements com.service.Interfaz.Escaneres{

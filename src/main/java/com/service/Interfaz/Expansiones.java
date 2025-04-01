@@ -1,6 +1,6 @@
 package com.service.Interfaz;
 
-import com.service.Expansiones.Clases.ExpansionManager;
+import com.service.Devices.Expansiones.Clases.ExpansionManager;
 
 public interface Expansiones {
     /**

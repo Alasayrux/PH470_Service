@@ -16,8 +16,7 @@
     import androidx.constraintlayout.widget.ConstraintLayout;
     import androidx.recyclerview.widget.RecyclerView;
 
-    import com.service.BalanzaService;
-    import com.service.Interfaz.classDevice;
+    import com.service.estructuras.classDevice;
     import com.service.PreferencesDevicesManager;
     import com.service.R;
 
@@ -205,7 +204,7 @@
                         }
                         if (listaDispositivos.get(position).getID()!=-1|| banderaVistaPrevia) {// (mData.get(position).getSalida().equals(Salida) && // (mData.get(position).getTipo()!=-1 && (mData.get(position).getModelo()==Modelo)){
                        //     System.out.println("CONSOLE DEBUG MODELO "+Modelo+" DEVICE "+Device+"     DEVICEDEFAULT"+PreferencesDevicesManager.obtenerIndiceTipo(listaDispositivos.get(position).getTipo())+" DIRECCION"+ listaDispositivos.get(position).getDireccion().isEmpty());
-
+                            System.out.println("DEVICE NUM "+ Device);
                             switch (Device){
                                case 0:{
                                    holder.constraintLayout1.setVisibility(VISIBLE);
@@ -245,6 +244,7 @@
                                    }else{
                                        if(Salidastr.contains("Red")||Salidastr.equals("Bluetooth")){
                                            holder.Ltvid.setVisibility(VISIBLE);
+                                           holder.tvnombreipmac.setText(Salidastr);
                                        }
                                        holder.tv_Modelo.setVisibility(GONE);
                                        holder.LtvModelo.setVisibility(GONE);
@@ -253,11 +253,15 @@
                                    }
                                    break;
                                }
+                                case 2 : {
+
+                                }
                                case 3:{
                                    holder.Ltvid.setVisibility(GONE);
                                    holder.LtvBaud.setVisibility(VISIBLE);
                                    holder.LtvData.setVisibility(VISIBLE);
                                    holder.LtvStop.setVisibility(VISIBLE);
+                                   holder.constraintLayout12.setVisibility(VISIBLE);
                                    holder.Ltvparity.setVisibility(VISIBLE);
                                    if(Direccion!=null) {
                                        int lenght = Direccion.size();
@@ -287,6 +291,13 @@
                                    break;
                                }
                                case 4:{
+                                   holder.tv_Modelo.setVisibility(VISIBLE);
+                                   holder.LtvModelo.setVisibility(VISIBLE);
+                                   holder.tv_Modelo.setText(Modelo);
+                                   holder.constraintLayout1.setVisibility(VISIBLE);
+                                   if(Salidastr.contains("Puerto Serie")||Salidastr.contains("PuertoSerie")) {
+                                       holder.constraintLayout12.setVisibility(VISIBLE);
+
                                    holder.LtvBaud.setVisibility(VISIBLE);
                                    holder.LtvData.setVisibility(VISIBLE);
                                    holder.LtvStop.setVisibility(VISIBLE);
@@ -297,7 +308,6 @@
                                            String Baud = Direccion.get(0);
                                            holder.tvBaud.setText(Baud);
                                        }
-
                                        holder.tvBaud.setClickable(false);
                                        holder.tvData.setClickable(false);
                                        if (lenght > 1) {
@@ -314,6 +324,18 @@
                                            String Parity = Direccion.get(3);
                                            holder.tvparity.setText(Parity);
                                        }
+                                   }else{
+                                       if(Direccion!=null) {
+                                           int lenght = Direccion.size();
+                                           if (lenght > 0) {
+                                               String IP = Direccion.get(0);
+                                               holder.Slave.setText(IP);
+                                           }
+                                       }
+                                       holder.Ltvid.setVisibility(VISIBLE);
+                                       holder.tvnombreipmac.setText("Red");
+                                       holder.Slave.setClickable(false);
+                                   }
                                    }
                                    holder.tvparity.setClickable(false);
                                    break;
@@ -322,9 +344,11 @@
                     } else if (listaDispositivos.get(position).getID() == -1) {
                         holder.constraintLayout1.setVisibility(GONE);
                         holder.constraintLayout2.setVisibility(VISIBLE);
+                            holder.constraintLayout12.setVisibility(GONE);
                     } else {
                         holder.constraintLayout1.setVisibility(GONE);
                         holder.constraintLayout2.setVisibility(GONE);
+                        holder.constraintLayout12.setVisibility(GONE);
                         holder.numMOD.setVisibility(GONE);
                         holder.ultimatelayout.setMaxHeight(0);
                     }
@@ -374,7 +398,8 @@
             public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
                 TextView ipMac,Slave,numMOD,tvnombreipmac,tvBaud,tvStop,tvData,tvparity, tv_Modelo;
 
-                ConstraintLayout constraintLayout1,constraintLayout2,ultimatelayout;
+                LinearLayout constraintLayout1,constraintLayout12;
+                ConstraintLayout constraintLayout2,ultimatelayout;
                 LinearLayout Ltvid,LtvBaud,LtvStop,LtvData,Ltvparity,LtvModelo;
 
 
@@ -382,6 +407,7 @@
                     super(itemView);
                     ultimatelayout=itemView.findViewById(R.id.ultimatelayout);
                     constraintLayout1=itemView.findViewById(R.id.constraintLayout1);
+                    constraintLayout12 = itemView.findViewById(R.id.constraintLayout12);
                     constraintLayout2=itemView.findViewById(R.id.constraintLayout2);
                     numMOD=itemView.findViewById(R.id.numMOD);
                     ipMac = itemView.findViewById(R.id.tv_ipmac);

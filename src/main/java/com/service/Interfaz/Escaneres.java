@@ -1,6 +1,6 @@
 package com.service.Interfaz;
 
-import com.service.Comunicacion.PuertosSerie.EscannerManager;
+import com.service.Devices.Expansiones.Clases.EscannerManager;
 
 public interface Escaneres {
     /**

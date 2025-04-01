@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Looper;
 import android.text.InputType;
 import android.text.method.DigitsKeyListener;
 import android.util.DisplayMetrics;
@@ -16,14 +17,19 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentActivity;
+
+import com.service.Interfaz.Modbus;
+import com.service.Interfaz.dispositivoBase;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -32,6 +38,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -46,7 +53,7 @@ import java.util.regex.Pattern;
 //import org.apache.http.conn.util.InetAddressUtils;
 
 
-public class Utils {
+public  class Utils {
     private static Toast toast;
     public static String DevuelveHora(){
         String Fecha = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
@@ -109,6 +116,61 @@ public class Utils {
         configureDialogSize(dialog1, dialog1.getContext());
         //showKeyboard(userInput, activity);
     }
+    public static void dialogTestingModbus(TextView textView, String string, String Texto, FragmentActivity activity) {
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(activity);
+        View mView = activity.getLayoutInflater().inflate(R.layout.testingmodbus, null);
+        final EditText userInput = mView.findViewById(R.id.etDatos);
+        final LinearLayout delete_text = mView.findViewById(R.id.lndelete_text);
+        final Spinner spinner = mView.findViewById(R.id.spinner);
+        ArrayList<String> items = new ArrayList<>();
+        items.addAll(PreferencesDevicesManager.obtenerAliasDeModelos(Modbus.ClasesModbus.values()));
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(activity.getApplicationContext(), android.R.layout.simple_spinner_item, items);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        userInput.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                return true;
+            }
+        });
+        TextView titulo = mView.findViewById(R.id.textViewt);
+        delete_text.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                userInput.setText("");
+            }
+        });
+        titulo.setText(Texto);
+
+        if (!textView.getText().toString().equals("")) {
+            userInput.setText(textView.getText().toString());
+            userInput.setSelection(userInput.getText().length());
+        }
+        Button Guardar = mView.findViewById(R.id.buttons);
+        Button Cancelar = mView.findViewById(R.id.buttonc);
+        mBuilder.setView(mView);
+        Dialog dialog1 = mBuilder.create();
+        dialog1.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+        dialog1.show();
+        configureDialogSize(dialog1, dialog1.getContext());
+        showKeyboard(userInput, activity);
+        Guardar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dispositivoBase x =BalanzaService.getInstance().Dispositivos.getDispositivo(1);
+                if(BalanzaService.ModelosClasesDispositivos.Slave.compararInstancia(1)) {
+                    Modbus.Slave mSlave = (Modbus.Slave) x;
+                    mSlave.publicarHoldingRegister(0, Modbus.Slave.ClasesModbus.valueOf(spinner.getSelectedItem().toString()), userInput.getText().toString());
+                }
+                //textView.setText(userInput.getText().toString());
+                dialog1.cancel();
+            }
+        });
+        Cancelar.setOnClickListener(view -> dialog1.cancel());
+
+    }
+
 
     public static String DevuelveFecha(){
         String Fecha = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
@@ -566,7 +628,7 @@ public class Utils {
     public static String getFecha(){
         return new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
     }*/
-    public String format(int PuntoDecimal, String peso) {
+    public static  String format(int PuntoDecimal, String peso) {
         String formato = "0.";
         try {
             StringBuilder capacidadBuilder = new StringBuilder(formato);
@@ -609,4 +671,11 @@ public class Utils {
         }
         return -1;
     }
+    public static void EsHiloSecundario() {
+        if (Looper.getMainLooper().isCurrentThread()) {
+            throw new RuntimeException("Esta función no debe ejecutarse en el hilo principal");
+        }
+        // Código pesado aquí
+    }
+
 }

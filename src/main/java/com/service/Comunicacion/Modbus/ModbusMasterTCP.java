@@ -16,7 +16,7 @@ import java.util.concurrent.CountDownLatch;
 
 public class ModbusMasterTCP {
 
-    public static ModbusReq init(String ip) throws Exception {
+    public static ModbusReq init(String ip,OnRequestBack<String> callback) throws Exception {
         ModbusReq modbusReq = ModbusReq.getInstance(); // Inicializa la instancia aquí
         CountDownLatch connectionLatch = new CountDownLatch(1);
 
@@ -31,12 +31,14 @@ public class ModbusMasterTCP {
                     @Override
                     public void onSuccess(String s) {
                         Log.d(TAG, "onSuccess " + s);
+                        callback.onSuccess(s);
                         connectionLatch.countDown();
                     }
 
                     @Override
                     public void onFailed(String msg) {
                         Log.d(TAG, "onFailed " + msg);
+                        callback.onFailed(msg);
                         connectionLatch.countDown();
                     }
                 });

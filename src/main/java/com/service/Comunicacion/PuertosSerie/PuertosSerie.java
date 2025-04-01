@@ -102,7 +102,6 @@ public class PuertosSerie {
            }
             return serialPort;
         } else {
-            //System.out.println("NO EXISTE "+archivo);
             return null;
         }
     }
@@ -173,7 +172,6 @@ public class PuertosSerie {
         if(serialPort!=null){
             byte[] mBuffer = cmd.getBytes();
             try {
-                System.out.println("SYSSIZE "+mBuffer.length+cmd+Puerto);
                 if (mOutputStream != null) {
                     mOutputStream.write(mBuffer);
                 }

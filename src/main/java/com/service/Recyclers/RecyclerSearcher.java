@@ -13,8 +13,8 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.service.Comunicacion.PrinterDiscovery;
-import com.service.Interfaz.ZebraStruct;
+import com.service.Devices.Impresora.PrinterDiscovery;
+import com.service.estructuras.ZebraStruct;
 import com.service.R;
 
 import java.util.ArrayList;

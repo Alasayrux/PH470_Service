@@ -2,6 +2,8 @@ package com.service;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
+import static com.service.Utils.getIPAddress;
+
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -44,17 +46,16 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.tabs.TabLayout;
-import com.service.Balanzas.Clases.BalanzaBase;
-import com.service.Balanzas.Clases.Optima.OPTIMA_I;
+import com.service.Devices.Balanzas.Clases.BalanzaBase;
 import com.service.Comunicacion.ButtonProvider;
 import com.service.Comunicacion.ButtonProviderSingleton;
-import com.service.Comunicacion.GenericDiscovery;
-import com.service.Comunicacion.PrinterDiscovery;
+import com.service.Devices.Balanzas.Clases.GenericDiscovery;
+import com.service.Devices.Impresora.PrinterDiscovery;
 import com.service.Comunicacion.PingTask;
-import com.service.Interfaz.ZebraStruct;
-import com.service.Interfaz.classDevice;
+import com.service.estructuras.ZebraStruct;
+import com.service.estructuras.classDevice;
 import com.service.Recyclers.MyRecyclerViewAdapter;
-import com.service.Comunicacion.Impresora.ImprimirEstandar;
+import com.service.Devices.Impresora.ImprimirEstandar;
 import com.service.Recyclers.RecyclerDeviceLimpio;
 import com.service.Recyclers.RecyclerSearcher;
 import com.zebra.sdk.comm.BluetoothConnection;
@@ -199,7 +200,7 @@ public class ServiceFragment extends Fragment {
                             salidaDisponible = ModificacionImpresoras(arr, arrint);
                             break;
                         }
-                        case 2: case 4: case 3: {
+                        case 2: case 4: case 3: case 5: {
                             linearpuertos.setVisibility(VISIBLE);
                             for (classDevice x :
                                     listaperdevice
@@ -220,7 +221,10 @@ public class ServiceFragment extends Fragment {
                                         arr[2] = false;
                                         arrint[2]++;
                                     }
-
+                                    if(position-1 == 4) {
+                                        arr[3] = false;
+                                        arrint[3]++;
+                                    }
                                 }
                             }
                             salidaDisponible = ModificacionDispositivos(arr, arrint);
@@ -443,7 +447,6 @@ public class ServiceFragment extends Fragment {
                 Utils.dialogoDosOpciones(actividad,"¿esta seguro que quiere resetear Dispositivos de Service?","Si",() ->{
                     Utils.clearCache(activity.getApplicationContext());
                     BoolChangeBalanza=true;
-                    System.out.print("ENTRO?");
                     service.init(true);
                     ComService.getInstance().fragmentChangeListener.openFragmentPrincipal();
                     },"No",() ->{});
@@ -863,39 +866,85 @@ public class ServiceFragment extends Fragment {
     private void dialogDispositivo(classDevice Device) {
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(actividad);
         View mView = null;
-        mView = actividad.getLayoutInflater().inflate(R.layout.dialogio, null);
-        TextView tvBaud = mView.findViewById(R.id.tv_Baud);
+        mView = actividad.getLayoutInflater().inflate(R.layout.dialogo_devices, null);
+        TextView tvBaud = mView.findViewById(R.id.tv_Baud1);
+        TextView ip = mView.findViewById(R.id.tv_Baud);
+        Button buscador =mView.findViewById(R.id.buscadorbt);
+        buscador.setVisibility(GONE);
+        LinearLayout Lip= mView.findViewById(R.id.linearLayout4);
         TextView tvStop = mView.findViewById(R.id.tv_Stopbit);
         TextView tvData = mView.findViewById(R.id.tv_Databit);
         TextView tvparity = mView.findViewById(R.id.tv_Parity);
+        LinearLayout Lid = mView.findViewById(R.id.linearLayout3);
+        Lid.setVisibility(GONE);
         TextView nombreDialog = mView.findViewById(R.id.numMOD);
+        LinearLayout Lrs232 = mView.findViewById(R.id.Lrs232);
+        LinearLayout Lelse= mView.findViewById(R.id.Lelse);
+        Spinner sp_Modelo = mView.findViewById(R.id.sp_port);
+
+        ArrayAdapter<String> adapter11 = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, PreferencesDevicesManager.obtenerModelosDeTipo(PreferencesDevicesManager.obtenerTipoPorIndice(tablayout.getSelectedTabPosition()-1)));
+        adapter11.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sp_Modelo.setPopupBackgroundResource(R.drawable.campollenarclickeable);
+        sp_Modelo.setAdapter(adapter11);
+        sp_Modelo.setSelection(PreferencesDevicesManager.obtenerIndiceModeloPorTipo((tablayout.getSelectedTabPosition()-1),Device.getModelo()));
+        if(sp_tipopuerto.getSelectedItem().toString().contains("Puerto Serie")){
+            Lrs232.setVisibility(VISIBLE);
+        }else{
+            if(sp_tipopuerto.getSelectedItem().toString().contains("Red")){
+                Lip.setVisibility(VISIBLE);
+            }else{
+                Lip.setVisibility(GONE);
+            }
+            Lrs232.setVisibility(GONE);
+        }
+        final int[] lastpos = {1};
+        sp_Modelo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if(sp_tipopuerto.getSelectedItem().toString().contains("Red")) {
+                    if (position > 0) {
+                        if (!PreferencesDevicesManager.obtenerAliasDeModelos(BalanzaService.ModelosClasesDispositivos.values()).get(sp_Modelo.getSelectedItemPosition()).contains("Master")) {
+                            Lip.setClickable(false);
+                            ip.setClickable(false);
+                            ip.setText(getIPAddress(true));
+                        } else {
+                            Lip.setClickable(true);
+                            ip.setClickable(true);
+                            ip.setText("");
+                        }
+                        lastpos[0] =position;
+                    } else {
+                       sp_Modelo.setSelection(lastpos[0]);
+                       Utils.Mensaje("Funcion no disponible en RED",R.layout.item_customtoasterror,activity);
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
         nombreDialog.setText(("Nº Dispositivo " + (Device.getNDL())));
         if(Device.getDireccion()!=null) {
-            int lenghtdireccion = Device.getDireccion().size();
-            if (lenghtdireccion > 0 && tvBaud != null) {
-                tvBaud.setText(String.valueOf(Device.getDireccion().get(0)));
-            }
-            if (lenghtdireccion > 1 && tvData != null) {
-                tvData.setText(String.valueOf(Device.getDireccion().get(1)));
-            }
-            if (lenghtdireccion > 2 && tvStop != null) {
-                tvStop.setText(String.valueOf(Device.getDireccion().get(2)));
-            }
-            if (lenghtdireccion > 3 && tvparity != null) {
-                tvparity.setText(String.valueOf(Device.getDireccion().get(3)));
-            }
+            tvBaud.setText(Device.getDireccion().size() > 0 ? String.valueOf(Device.getDireccion().get(0)) : PreferencesDevicesManager.DefConfig.get(0));
+            tvStop.setText(Device.getDireccion().size() > 1 ? String.valueOf(Device.getDireccion().get(1)) : PreferencesDevicesManager.DefConfig.get(1));
+            tvData.setText(Device.getDireccion().size() > 2 ? String.valueOf(Device.getDireccion().get(2)) : PreferencesDevicesManager.DefConfig.get(2));
+            tvparity.setText(Device.getDireccion().size() > 3 ? String.valueOf(Device.getDireccion().get(3)) : PreferencesDevicesManager.DefConfig.get(3));
         }
         Button Guardar = mView.findViewById(R.id.Guardar);
         mBuilder.setView(mView);
         dialog = mBuilder.create();
         dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         dialog.show();
-
         //Utils.configureDialogSize(dialog,requireContext());
         Button remove = mView.findViewById(R.id.Remove);
         if (!Device.getSeteo()) {
             remove.setVisibility(GONE);
         }
+        ip.setOnClickListener(View -> {
+            Utils.dialogIp(ip, "", "Ingrese ip",actividad);
+        });
         tvBaud.setOnClickListener(View -> {
             Utils.dialogTextNumber(tvBaud, "", "Ingrese Baud",actividad);
         });
@@ -922,27 +971,39 @@ public class ServiceFragment extends Fragment {
             }
         });
         Guardar.setOnClickListener(View -> {
-            if(!tvBaud.getText().toString().equals("") && !tvparity.getText().toString().equals("") && !tvData.getText().toString().equals("") && !tvStop.getText().toString()
-                    .equals("")) {
 
+            if((!tvBaud.getText().toString().equals("") && !tvparity.getText().toString().equals("") && !tvData.getText().toString().equals("") && !tvStop.getText().toString().equals("")) && sp_tipopuerto.getSelectedItem().toString().contains("Puerto Serie")||sp_tipopuerto.getSelectedItem().toString().contains("Puerto Serie") && sp_Modelo.getSelectedItemPosition()!=0|| sp_tipopuerto.getSelectedItem().toString().contains("Red") && !ip.getText().toString().equals("")) {
                 try {
                     classDevice newDevice = new classDevice();
                     int position = tablayout.getSelectedTabPosition() - 1;
                     newDevice.setTipo(PreferencesDevicesManager.obtenerTipoPorIndice(position));
                     String value2 = sp_tipopuerto.getSelectedItem().toString();
                     ArrayList<String> listaux = new ArrayList<>();
-                    newDevice.setModelo(PreferencesDevicesManager.obtenerModelosDeTipo(PreferencesDevicesManager.obtenerTipoPorIndice(position)).get(0)); // device 40
+                    String value ="";
+                    if(sp_Modelo.getVisibility()==View.VISIBLE ) {
+                        value= sp_Modelo.getSelectedItem().toString();
+                    }else{
+                        value = (PreferencesDevicesManager.obtenerModelosDeTipo(PreferencesDevicesManager.obtenerTipoPorIndice(tablayout.getSelectedTabPosition()-1)).get(0));
+                    }
+                    newDevice.setModelo(value);
                     newDevice.setSalida(PreferencesDevicesManager.salidaMap.get(value2));
-                    listaux.add(tvBaud.getText().toString());
-                    listaux.add(tvStop.getText().toString());
-                    listaux.add(tvData.getText().toString());
-                    listaux.add(tvparity.getText().toString());
+                    if(PreferencesDevicesManager.salidaMap.get(value2).contains("PuertoSerie")){
+                        listaux.add(tvBaud.getText().toString());
+                        listaux.add(tvStop.getText().toString());
+                        listaux.add(tvData.getText().toString());
+                        listaux.add(tvparity.getText().toString());
+                    }else{
+                            listaux.add(ip.getText().toString());
+                    }
                     newDevice.setDireccion(listaux);
+
                     newDevice.setSeteo(true);
-                    newDevice.setID(listaglob.size());
+                    newDevice.setID(1);
                     newDevice.setND(Device.getND());
                     PreferencesDevicesManager.addDevice(newDevice,activity);
+                    BoolChangeBalanza=true;
                     activity.runOnUiThread(new Runnable() {
+
                         @Override
                         public void run() {
                             CargarDatosRecycler(sp_tipopuerto.getSelectedItem().toString());
@@ -960,25 +1021,23 @@ public class ServiceFragment extends Fragment {
     private void dialogEscaner(classDevice Device) {
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(actividad);
         View mView = null;
-        mView = actividad.getLayoutInflater().inflate(R.layout.dialogio, null);
-        TextView tvBaud = mView.findViewById(R.id.tv_Baud);
-        TextView tvStop = mView.findViewById(R.id.tv_Stopbit);
-        TextView tvData = mView.findViewById(R.id.tv_Databit);
-        TextView tvparity = mView.findViewById(R.id.tv_Parity);
+        mView = actividad.getLayoutInflater().inflate(R.layout.dialogo_devices, null);
+        TextView tvBaud = mView.findViewById(R.id.tv_Baud1);
+
+            TextView tvStop = mView.findViewById(R.id.tv_Stopbit);
+            TextView tvData = mView.findViewById(R.id.tv_Databit);
+            TextView tvparity = mView.findViewById(R.id.tv_Parity);
         TextView nombreDialog = mView.findViewById(R.id.numMOD);
         nombreDialog.setText(("Nº Escaner " + (Device.getNDL())));
-        int lenghtdireccion = Device.getDireccion().size();
-        if (lenghtdireccion > 0 && tvBaud != null) {
-            tvBaud.setText(String.valueOf(Device.getDireccion().get(0)));
-        }
-        if (lenghtdireccion > 1 && tvData != null) {
-            tvData.setText(String.valueOf(Device.getDireccion().get(1)));
-        }
-        if (lenghtdireccion > 2 && tvStop != null) {
-            tvStop.setText(String.valueOf(Device.getDireccion().get(2)));
-        }
-        if (lenghtdireccion > 3 && tvparity != null) {
-            tvparity.setText(String.valueOf(Device.getDireccion().get(3)));
+        LinearLayout Lelse= mView.findViewById(R.id.Lelse);
+        LinearLayout Lrs232 = mView.findViewById(R.id.Lrs232);
+        Lelse.setVisibility(GONE);
+        Lrs232.setVisibility(VISIBLE);
+        if(Device.getDireccion()!=null) {
+            tvBaud.setText(Device.getDireccion().size() > 0 ? String.valueOf(Device.getDireccion().get(0)) : PreferencesDevicesManager.DefConfig.get(0));
+            tvStop.setText(Device.getDireccion().size() > 1 ? String.valueOf(Device.getDireccion().get(1)) : PreferencesDevicesManager.DefConfig.get(1));
+            tvData.setText(Device.getDireccion().size() > 2 ? String.valueOf(Device.getDireccion().get(2)) : PreferencesDevicesManager.DefConfig.get(2));
+            tvparity.setText(Device.getDireccion().size() > 3 ? String.valueOf(Device.getDireccion().get(3)) : PreferencesDevicesManager.DefConfig.get(3));
         }
         Button Guardar = mView.findViewById(R.id.Guardar);
         mBuilder.setView(mView);
@@ -1059,7 +1118,7 @@ public class ServiceFragment extends Fragment {
 
                     x.setDireccion(listaux);
                     x.setSeteo(true);
-                    x.setID(listaglob.size());
+                    x.setID(1);
                     x.setND(Device.getND());
                     PreferencesDevicesManager.addDevice(x,activity);
                     activity.runOnUiThread(new Runnable() {
@@ -1082,11 +1141,12 @@ public class ServiceFragment extends Fragment {
     private void dialogIO(classDevice Device) {
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(actividad);
         View mView = null;
-        mView = actividad.getLayoutInflater().inflate(R.layout.dialogobalanza, null);
+        mView = actividad.getLayoutInflater().inflate(R.layout.dialogo_devices, null);
         LinearLayout LtvSlave = mView.findViewById(R.id.linearLayout3);
-        LtvSlave.setVisibility(GONE ); // POR AHORA LPMLPMLPMLPM
+        LtvSlave.setVisibility(GONE); // POR AHORA LPMLPMLPMLPM
         Spinner sp_Modelo = mView.findViewById(R.id.sp_port);
         TextView nombreDialog = mView.findViewById(R.id.numMOD);
+
         nombreDialog.setText(("Nº Expansion " + (Device.getNDL())));
         ArrayAdapter<String> adapter11 = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, PreferencesDevicesManager.obtenerModelosDeTipo(PreferencesDevicesManager.obtenerTipoPorIndice(tablayout.getSelectedTabPosition()-1)));
         adapter11.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -1141,14 +1201,14 @@ public class ServiceFragment extends Fragment {
 
                 if(sp_Modelo.getVisibility()==View.VISIBLE ) {
                    value= sp_Modelo.getSelectedItem().toString();
-                   listaux = BalanzaService.ModelosClasesExpansiones.valueOf(value).getConfiguraciones();
+                   listaux = BalanzaService.ModelosClasesDispositivos.valueOf(value).getConfiguraciones();
                 }else{
                     value = (PreferencesDevicesManager.obtenerModelosDeTipo(PreferencesDevicesManager.obtenerTipoPorIndice(tablayout.getSelectedTabPosition()-1)).get(0));
                 }
                 x.setModelo(value);
                 x.setDireccion(listaux);
                 x.setSeteo(true);
-                x.setID(listaglob.size());
+                x.setID(1);
                 x.setND(Device.getND());
                 PreferencesDevicesManager.addDevice(x,activity);
                 activity.runOnUiThread(new Runnable() {
@@ -1263,7 +1323,7 @@ public class ServiceFragment extends Fragment {
     private void dialogImpresora(classDevice Device){
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(actividad);
         View mView = null;
-        mView = actividad.getLayoutInflater().inflate(R.layout.dialogobalanza, null);
+        mView = actividad.getLayoutInflater().inflate(R.layout.dialogo_devices, null);
         Spinner sp_Modelo = mView.findViewById(R.id.sp_port);
         TextView macIp = mView.findViewById(R.id.tv_Baud);
         TextView nombreMacIP = mView.findViewById(R.id.textView2);
@@ -1406,7 +1466,7 @@ public class ServiceFragment extends Fragment {
                     }
                     x.setDireccion(listaux);
                     x.setSeteo(true);
-                    x.setID(listaglob.size());
+                    x.setID(1);
                     x.setND(Device.getND());
                     PreferencesDevicesManager.addDevice(x,activity);
                     activity.runOnUiThread(new Runnable() {
@@ -1434,7 +1494,7 @@ public class ServiceFragment extends Fragment {
     }
     private void dialogBalanza(classDevice Device){
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(actividad);
-        View mView = actividad.getLayoutInflater().inflate(R.layout.dialogobalanza, null);
+        View mView = actividad.getLayoutInflater().inflate(R.layout.dialogo_devices, null);
             Spinner sp_Modelo = mView.findViewById(R.id.sp_port);
             LinearLayout LtvSlaveID = mView.findViewById(R.id.linearLayout3);
             TextView SlaveID = mView.findViewById(R.id.tv_Slave);
@@ -1564,7 +1624,7 @@ public class ServiceFragment extends Fragment {
                     String value2 = sp_tipopuerto.getSelectedItem().toString();
                     x.setSalida(PreferencesDevicesManager.salidaMap.get(value2));
                     x.setDireccion(listaux);
-                    x.setID(Slave);
+                    x.setID(1);
                     x.setSeteo(true);
                     x.setND(Device.getND());
                     PreferencesDevicesManager.addDevice(x,activity);
@@ -1652,30 +1712,30 @@ public class ServiceFragment extends Fragment {
 
         int numsalidasdesbloqueadas =0;
         if(!arr[0]){
-            lista.add(("Puerto Serie 1"));//arrint[0].toString()));
+            lista.add((PreferencesDevicesManager.obtenerClavePorValor(PreferencesDevicesManager.salidaMap,"PuertoSerie 1")));//arrint[0].toString()));
             numsalidasdesbloqueadas++;
 
         }
         if(!arr[1]){
-            lista.add(("Puerto Serie 2"));//arrint[1].toString()));
+            lista.add((PreferencesDevicesManager.obtenerClavePorValor(PreferencesDevicesManager.salidaMap,"PuertoSerie 2")));//arrint[1].toString()));
             numsalidasdesbloqueadas++;
         }
         if(!arr[2]){
-            lista.add(("Puerto Serie 3"));//arrint[2].toString()));
+            lista.add((PreferencesDevicesManager.obtenerClavePorValor(PreferencesDevicesManager.salidaMap,"PuertoSerie 3")));//arrint[2].toString()));
             numsalidasdesbloqueadas++;
         }
         if (!arr[3]) {
             numsalidasdesbloqueadas++;
-            lista.add(("Red"));//arrint[3].toString()));
+            lista.add((PreferencesDevicesManager.obtenerClavePorValor(PreferencesDevicesManager.salidaMap,"Red")));//arrint[3].toString()));
         }
         if (!arr[4]){
 
             numsalidasdesbloqueadas++;
-            lista.add(("Bluetooth"));//arrint[4].toString()));
+            lista.add((PreferencesDevicesManager.obtenerClavePorValor(PreferencesDevicesManager.salidaMap,"Bluetooth")));//arrint[4].toString()));
         }
         if (!arr[5]){
             numsalidasdesbloqueadas++;
-            lista.add(("USB"));//arrint[5].toString()));
+            lista.add((PreferencesDevicesManager.obtenerClavePorValor(PreferencesDevicesManager.salidaMap,"USB")));//arrint[5].toString()));
         }
        // System.out.println("dios "+ !arr[5]);
         if(numsalidasdesbloqueadas!=0) {
@@ -1693,15 +1753,19 @@ public class ServiceFragment extends Fragment {
         ArrayList<String> lista = new ArrayList<String>();
         int numsalidasdesbloqueadas=0;
         if(!arr[0]){
-            lista.add(("Puerto Serie 1"));//+arrint[0].toString()));
+            lista.add((PreferencesDevicesManager.obtenerClavePorValor(PreferencesDevicesManager.salidaMap,"PuertoSerie 1")));//+arrint[0].toString()));
             numsalidasdesbloqueadas++;
         }
         if(!arr[1]) {
-            lista.add(("Puerto Serie 2"));//+arrint[1].toString()));
+            lista.add((PreferencesDevicesManager.obtenerClavePorValor(PreferencesDevicesManager.salidaMap,"PuertoSerie 2")));//+arrint[1].toString()));
             numsalidasdesbloqueadas++;
         }
         if(!arr[2]) {
-            lista.add(("Puerto Serie 3"));//+arrint[2].toString()));
+            lista.add((PreferencesDevicesManager.obtenerClavePorValor(PreferencesDevicesManager.salidaMap,"PuertoSerie 3")));//+arrint[2].toString()));
+            numsalidasdesbloqueadas++;
+        }
+        if(!arr[3]) {
+            lista.add((PreferencesDevicesManager.obtenerClavePorValor(PreferencesDevicesManager.salidaMap,"Red")));//+arrint[2].toString()));
             numsalidasdesbloqueadas++;
         }
         if(numsalidasdesbloqueadas!=0) {

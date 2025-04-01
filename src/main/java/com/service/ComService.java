@@ -4,7 +4,7 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.service.Comunicacion.OnFragmentChangeListener;
+import com.service.Interfaz.OnFragmentChangeListener;
 
 public class ComService {
     public AppCompatActivity activity;

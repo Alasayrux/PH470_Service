@@ -1,7 +1,12 @@
 package com.service.Comunicacion.Modbus.Req;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
+import com.service.Comunicacion.Modbus.JSerialCommWrapper;
 import com.zgkxzx.modbus4And.ModbusFactory;
 import com.zgkxzx.modbus4And.ModbusSlaveSet;
 import com.zgkxzx.modbus4And.ProcessImageListener;
@@ -9,10 +14,12 @@ import com.zgkxzx.modbus4And.exception.IllegalDataAddressException;
 import com.zgkxzx.modbus4And.exception.ModbusInitException;
 import com.zgkxzx.modbus4And.requset.ModbusParam;
 import com.zgkxzx.modbus4And.requset.OnRequestBack;
+import com.zgkxzx.modbus4And.serial.SerialPortWrapper;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import android_serialport_api.SerialPort;
 
 
 public class ModbusReqRtuSlave {
@@ -54,67 +61,42 @@ public class ModbusReqRtuSlave {
      *
      * @throws ModbusInitException
      */
-    public void init(final OnRequestBack<String> onRequestBack,String puerto, int baudrate,int dataBits,int stopbit,int parity) throws Exception {
+    public ModbusSlaveSet init(final OnRequestBack<String> onRequestBack,BasicProcessImage image,String puerto, int baudrate,int dataBits,int stopbit,int parity) throws Exception {
         ModbusFactory mModbusFactory = new ModbusFactory();
-        //SerialPort serialPort = null;
-        //SerialPortWrapper serialPortWrapper = new JSerialCommWrapper(puerto,serialPort, baudrate, dataBits, stopbit, parity);
-        //serialPortWrapper.open();
+        SerialPort serialPort = null;
+        SerialPortWrapper serialPortWrapper = new JSerialCommWrapper(puerto,serialPort, baudrate, dataBits, stopbit, parity);
+        serialPortWrapper.open();
+        mModbusSlave = mModbusFactory.createRtuSlave(serialPortWrapper);
         //mModbusSlave = mModbusFactory.createRtuSlave(serialPortWrapper);
-        mModbusSlave.addProcessImage(getModscanProcessImage(1));
-        //mModbusMaster = mModbusFactory.createTcpMaster(params, modbusParam.keepAlive);
-
-        executorService.submit(new Runnable() {
-            @Override
-            public void run() {
+        mModbusSlave.addProcessImage(image);
+        Handler mainHandler = new Handler(Looper.getMainLooper());
                 try {
                     mModbusSlave.start();
+                    Log.d(TAG, "Modbus4Android init success");
+                    isInit = true;
+
+                    // Pasar la llamada de éxito al hilo principal
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            onRequestBack.onSuccess("Modbus4Android init success");
+                        }
+                    });
                 } catch (ModbusInitException e) {
                     mModbusSlave.stop();
                     isInit = false;
                     Log.d(TAG, "Modbus4Android init failed " + e);
-                    onRequestBack.onFailed("Modbus4Android init failed ");
 
+                    // Pasar la llamada de error al hilo principal
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            onRequestBack.onFailed("Modbus4Android init failed ");
+                        }
+                    });
                 }
-                Log.d(TAG, "Modbus4Android init success");
-                isInit = true;
-                onRequestBack.onSuccess("Modbus4Android init success");
-
-
-            }
-        });
-
+                return mModbusSlave;
     }
-    static BasicProcessImage getModscanProcessImage(int slaveId) {
-        BasicProcessImage processImage = new BasicProcessImage(slaveId);
-        processImage.setInvalidAddressValue(Short.MIN_VALUE);
-        processImage.setHoldingRegister(0,(short) 0);
-        processImage.setHoldingRegister(1,(short) 0);
-        processImage.setHoldingRegister(2,(short) 0);
-        processImage.setHoldingRegister(3,(short) 0);
-        processImage.setHoldingRegister(4,(short) 0);
-        processImage.setHoldingRegister(5,(short) 0);
-        processImage.setHoldingRegister(6,(short) 0);
-        processImage.setHoldingRegister(7,(short) 0);
-        processImage.setHoldingRegister(8,(short) 0);
-        processImage.setHoldingRegister(9,(short) 0);
-        // Add an image listener.
-        processImage.addListener(new ProcessImageListener() {
-            @Override
-            public void coilWrite(int i, boolean b, boolean b1) {
-
-            }
-
-            @Override
-            public void holdingRegisterWrite(int i, short i1, short i2) {
-                //i = offset
-                //i1 = oldvalue
-                //i2 = newvalue
-                //System.out.println("HR at " + i + " was set from " + i1 + " to " + i2);
-            }
-        });
-        return processImage;
-    }
-
     /**
      * destory the modbus4Android instance
      */
@@ -125,7 +107,6 @@ public class ModbusReqRtuSlave {
         }
         isInit = false;
     }
-
     public short readRegister(int register) throws IllegalDataAddressException {
         final short[] registro = {123};
         if (!isInit) {

@@ -1,6 +1,6 @@
 package com.service.Interfaz;
 
-import com.service.Balanzas.Clases.BalanzaBase;
+import com.service.Devices.Balanzas.Clases.BalanzaBase;
 
 
 public interface Balanza {

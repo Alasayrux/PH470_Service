@@ -1,17 +1,17 @@
 package com.service;
 
-import android.bluetooth.BluetoothClass;
 import android.content.Context;
 import android.content.SharedPreferences;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.service.Interfaz.classDevice;
+import com.service.estructuras.classDevice;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,10 +20,16 @@ import java.util.Objects;
 public  class PreferencesDevicesManager {
 
 
-    private static final Map<String, List<String>> deviceMap = new LinkedHashMap<>();
+    public static final Map<String, List<String>> deviceMap = new LinkedHashMap<>();
     public static final Map<String, String> salidaMap = new HashMap<>();
-    static {
 
+    public static final ArrayList<String> DefConfig = new ArrayList<String>();
+    static {
+        DefConfig.add("9600");
+        DefConfig.add("1");
+        DefConfig.add("8");
+        DefConfig.add("0");
+//-----
         salidaMap.put("Puerto Serie 1", "PuertoSerie 1");
         salidaMap.put("Puerto Serie 2", "PuertoSerie 2");
         salidaMap.put("Puerto Serie 3", "PuertoSerie 3");
@@ -35,7 +41,7 @@ public  class PreferencesDevicesManager {
         deviceMap.put("Impresora", Arrays.asList("ZEBRA"));
         deviceMap.put("Expansion", obtenerAliasDeModelos(BalanzaService.ModelosClasesExpansiones.values()));
         deviceMap.put("Escaner", Arrays.asList("Escaner"));
-        deviceMap.put("Dispositivo", Arrays.asList("Dispositivo"));
+        deviceMap.put("Dispositivo",obtenerAliasDeModelos(BalanzaService.ModelosClasesDispositivos.values()));
         deviceMap.put("default",Arrays.asList( "default"));
 
     }
@@ -105,7 +111,21 @@ public  class PreferencesDevicesManager {
         }
         return dispositivosOrganizados;
     }*/
- public static ArrayList<Integer> getBalanzas(AppCompatActivity activity) {
+
+
+    public static String obtenerClavePorValor(Map<String, String> map, String valor) {
+     for (Map.Entry<String, String> entry : map.entrySet()) {
+         if (entry.getValue().equals(valor)) {
+             return entry.getKey();
+         }
+     }
+     return null; // Si no se encuentra el valor
+ }
+    public static String obtenerValorPorClave(Map<String, String> map, String clave) {
+        return map.get(clave); // Devuelve el valor o null si no existe la clave
+    }
+
+    public static ArrayList<Integer> getBalanzas(AppCompatActivity activity) {
      SharedPreferences Preferencias = activity.getSharedPreferences("devicesService", Context.MODE_PRIVATE);
      String tipo="";
      ArrayList<Integer> balanzas = new ArrayList<>();
@@ -180,7 +200,6 @@ public  class PreferencesDevicesManager {
             ObjEditor.putString(String.valueOf("Direccion_"+balanzalenght), x.getDireccion().get(0));
         } else if (x.getSalida().contains("USB")) {}
         ObjEditor.putString(String.valueOf("Tipo_"+balanzalenght), Tipo);
-     //   System.out.println("salidaaux "+x.getSalida());
         ObjEditor.putString(String.valueOf("Salida_"+balanzalenght),x.getSalida());
         if(Modelo!=null)ObjEditor.putString(String.valueOf("Modelo_"+balanzalenght),Modelo);
         ObjEditor.putInt(String.valueOf("ID_"+balanzalenght),x.getID());
@@ -235,7 +254,6 @@ public  class PreferencesDevicesManager {
             }
             if(!tipo.equals(valordef)&&!tipo.equals("fin")) {
                 String Salida = Preferencias.getString("Salida_" + num, "PuertoSerie 1");
-                System.out.println("Salida "+Salida);
                 Collection<String> values = salidaMap.values();
                 List<String> valueList = new ArrayList<>(values);
                 if (salidaMap.containsKey(Salida)) {
@@ -299,7 +317,6 @@ public  class PreferencesDevicesManager {
             if(!tipo.equals(tipodevicestr)){ // es probable que sea mejor (!tipo.equals(tipodevicestr))
                 numbza++;
             }else if(!tipo.equals("fin")) {
-                //    System.out.println("Salidaaux"+Salidaaux );
                     balanza.setND(numbza);
                     balanza.setNDL(numdevl);
                     numdevl++;
@@ -392,7 +409,6 @@ public  class PreferencesDevicesManager {
                 String Salidaaux = Preferencias.getString("Salida_" + num, "PuertoSerie 1");
                 int NumeroID = Preferencias.getInt("ID_" + num, 1);
                 ArrayList<String> listaux = new ArrayList<String>();
-             //   System.out.println("SALIDA AAAA"+ Salidaaux);
                 if (Salidaaux.contains("PuertoSerie")) {
                     String baud = Preferencias.getString("Baud_" + num, "9600");
                     String dataB = Preferencias.getString("DataB_" + num, "1");
@@ -480,7 +496,6 @@ public  class PreferencesDevicesManager {
                     listaux.add("");
                     listaux.add("");
                 }
-                System.out.println(tipo +" CUANDO SEA IMPRESORA TIENE Q SE ZEBRA LPM "+Modelobza);
                 balanza.setModelo(Modelobza);
                 balanza.setID(NumeroID);
                 balanza.setSalida(Salidaaux);
@@ -575,7 +590,6 @@ public  class PreferencesDevicesManager {
     }
     public  static List<String> obtenerModelosDeTipo(String tipo) {
         if (deviceMap.containsKey(tipo)) {
-            System.out.println("SIZE OBTENER MODELO DE TIPO " +deviceMap.get(tipo).size());
             return deviceMap.get(tipo);
         }
         return new ArrayList<>();
@@ -588,7 +602,6 @@ public  class PreferencesDevicesManager {
         List<String> tipos = new ArrayList<>(deviceMap.keySet()); // Obtener las claves (tipos) como lista
 
         if (indice >= 0 && indice < tipos.size()) {
-            System.out.println("OBTENER TIPO POR INDICE"+tipos.get(indice)+ " INDEX "+indice);
             return tipos.get(indice); // Devuelve el tipo en el índice especificado
         }
         return null; // Si el índice es inválido
